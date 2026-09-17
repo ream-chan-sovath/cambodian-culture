@@ -18,7 +18,7 @@ export const siteConfig = {
    * → copy the `token` value; no DNS change needed). Leave empty to turn visitor tracking
    * off. Only counted on the live site, never in dev.
    */
-  cloudflareAnalyticsToken: '',
+  cloudflareAnalyticsToken: 'f1ee4b15f527481095edf600685fb3c2',
   /** First year of publication, shown in the footer. */
   since: 2026,
 };
