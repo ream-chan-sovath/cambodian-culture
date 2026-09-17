@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig, fontProviders } from 'astro/config';
 import mdx from '@astrojs/mdx';
+import sitemap from '@astrojs/sitemap';
 import { satteri } from '@astrojs/markdown-satteri';
 import { footnoteLabels } from './src/lib/footnote-labels.mjs';
 
@@ -15,7 +16,7 @@ export default defineConfig({
   trailingSlash: 'always',
   // Keep spaces between inline elements in prose (Astro 7 defaults to JSX rules).
   compressHTML: true,
-  integrations: [mdx()],
+  integrations: [mdx(), sitemap()],
   i18n: {
     // Khmer is disabled for now (kept in src/site.config.ts's full `locales` list, content
     // and strings untouched) — add 'km' back here too to re-enable the routed translation.
