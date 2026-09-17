@@ -1,0 +1,174 @@
+---
+import { localNumber, useTranslations } from '../../i18n/utils';
+
+// A YouTube video that plays on the page. Only the thumbnail loads at first;
+// YouTube itself (via youtube-nocookie.com) loads when the reader presses play.
+// Without JavaScript the thumbnail is a plain link to YouTube.
+interface Props {
+  /** The 11-character YouTube video id, from youtube.com/watch?v=<id>. */
+  id: string;
+  title: string;
+  /** Who published it, as shown on YouTube. */
+  channel: string;
+  /** Length in seconds, shown as m:ss. */
+  seconds?: number;
+  /** Start playback at this many seconds. */
+  start?: number;
+  /** Use the high-resolution thumbnail (not every video has one). */
+  hd?: boolean;
+}
+
+const { id, title, channel, seconds, start, hd = false } = Astro.props;
+const locale = Astro.locals.locale ?? 'en';
+const t = useTranslations(locale);
+const watchUrl = `https://www.youtube.com/watch?v=${id}${start ? `&t=${start}s` : ''}`;
+const thumb = `https://i.ytimg.com/vi/${id}/${hd ? 'maxresdefault' : 'sddefault'}.jpg`;
+const duration =
+  seconds !== undefined
+    ? seconds >= 3600
+      ? `${Math.floor(seconds / 3600)}:${String(Math.floor((seconds % 3600) / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`
+      : `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`
+    : undefined;
+const hasCaption = Astro.slots.has('default');
+---
+
+<figure class="video" data-video={id} data-start={start}>
+  <div class="video__screen">
+    <a class="video__poster" href={watchUrl} aria-label={t('playVideo', { title })} data-video-play>
+      <img src={thumb} alt="" loading="lazy" decoding="async" width="640" height="360" referrerpolicy="no-referrer" />
+      <span class="video__button glass" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M8 5.5 L19 12 L8 18.5 Z"></path></svg>
+      </span>
+      {duration && <span class="video__duration">{localNumber(duration, locale)}</span>}
+    </a>
+  </div>
+  <figcaption>
+    <p class="video__title">{title}</p>
+    {hasCaption && <div class="video__caption"><slot /></div>}
+    <p class="video__meta">{t('videoFrom')} <a href={watchUrl} rel="noopener">{channel}</a></p>
+    <p class="video__meta">{t('videoPrivacy')}</p>
+  </figcaption>
+</figure>
+
+<style>
+  .video {
+    clear: both;
+    margin: 3rem 0;
+    background: var(--weave), var(--silk-plum);
+    background-blend-mode: overlay;
+    color: var(--on-plum);
+    padding: 10px 10px 0;
+  }
+  .video__screen {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    background: var(--plum-deep);
+    outline: 1px solid color-mix(in oklab, var(--palace-gold) 55%, transparent);
+    outline-offset: -1px;
+  }
+  .video__poster,
+  .video__screen :global(iframe) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+  .video__poster {
+    display: block;
+    color: var(--on-plum);
+  }
+  .video__poster img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  /* Play button: a small round glass disc over the thumbnail. */
+  .video__button {
+    --k-tint: rgb(233 207 138 / 0.8);
+    --k-edge: 138 101 16;
+    --k-solid: #e9cf8a;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: clamp(3.5rem, 9vw, 4.4rem);
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    display: grid;
+    place-items: center;
+    color: var(--silk-plum);
+  }
+  .video__button svg {
+    width: 42%;
+    fill: currentColor;
+  }
+  .video__poster:hover .video__button,
+  .video__poster:focus-visible .video__button {
+    --k-tint: rgb(243 236 224 / 0.95);
+  }
+  .video__poster:focus-visible {
+    outline: 2px solid var(--gold-pale);
+    outline-offset: -4px;
+  }
+  .video__duration {
+    position: absolute;
+    right: 0.6rem;
+    bottom: 0.6rem;
+    padding: 0.05rem 0.45rem;
+    background: rgb(40 14 33 / 0.85);
+    font-size: var(--step-14);
+    font-variant-numeric: tabular-nums;
+  }
+  figcaption {
+    padding: 0.9rem 0.4rem 1rem;
+  }
+  .video__title {
+    margin: 0;
+    font-family: var(--display);
+    font-size: var(--step-21);
+    line-height: 1.3;
+  }
+  .video__title:lang(km),
+  :global(:lang(km)) .video__title {
+    font-family: var(--reading);
+    font-weight: 700;
+    line-height: 1.7;
+  }
+  .video__caption {
+    margin-top: 0.35rem;
+    font-size: var(--step-16);
+    color: var(--on-plum-soft);
+  }
+  .video__caption :global(p) {
+    margin: 0;
+  }
+  .video__meta {
+    margin: 0.35rem 0 0;
+    font-size: var(--step-14);
+    color: var(--on-plum-soft);
+  }
+  .video__meta a {
+    color: var(--gold-pale);
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-video]').forEach((video) => {
+    const play = video.querySelector<HTMLAnchorElement>('[data-video-play]');
+    if (!play) return;
+    play.addEventListener('click', (event) => {
+      event.preventDefault();
+      const id = video.dataset.video!;
+      const params = new URLSearchParams({ autoplay: '1', rel: '0', modestbranding: '1', playsinline: '1' });
+      if (video.dataset.start) params.set('start', video.dataset.start);
+      const iframe = document.createElement('iframe');
+      iframe.src = `https://www.youtube-nocookie.com/embed/${id}?${params}`;
+      iframe.title = play.getAttribute('aria-label') ?? 'YouTube video';
+      iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+      iframe.allowFullscreen = true;
+      iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+      play.replaceWith(iframe);
+      iframe.focus();
+    });
+  });
+</script>

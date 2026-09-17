@@ -1,0 +1,448 @@
+---
+import { getImage } from 'astro:assets';
+import type { Locale } from '../../site.config';
+import { getMedia } from '../../lib/media';
+import { localNumber, useTranslations } from '../../i18n/utils';
+
+// The basic kbach as set out by master teacher Pech Tum Kravel (2001) and photographed for
+// Yosothor's Khmer Renaissance, article 67.
+// Photos live in the page's images/gestures/ folder and are credited in credits.yaml.
+
+type Text = Record<Locale, string>;
+interface Gesture {
+  id: string;
+  file: string;
+  km: string;
+  roman: string;
+  short: Text;
+  name: Text;
+  meaning: Text;
+}
+
+const cycle: Gesture[] = [
+  {
+    id: 'sprouting',
+    file: '01-sprouting.jpg',
+    km: 'ក្បាច់ដុះពន្លក',
+    roman: 'kbach doh ponlok',
+    short: { en: 'Sprouting', km: 'ដុះពន្លក', zh: '发芽' },
+    name: { en: 'Sprouting', km: 'ដុះពន្លក', zh: '发芽' },
+    meaning: {
+      en: 'A seed sprouts: the first stage of the plant’s life.',
+      km: 'គ្រាប់ពូជដុះពន្លក៖ ដំណាក់កាលដំបូងនៃជីវិតរុក្ខជាតិ។',
+      zh: '种子发芽，这是植物生命的第一个阶段。',
+    },
+  },
+  {
+    id: 'shoot',
+    file: '02-shoot.jpg',
+    km: 'ក្បាច់ចេញត្រួយ',
+    roman: 'kbach chenh truoy',
+    short: { en: 'Shoot', km: 'ចេញត្រួយ', zh: '抽芽' },
+    name: { en: 'Putting out a shoot', km: 'ចេញត្រួយ', zh: '抽出嫩芽' },
+    meaning: {
+      en: 'A young shoot grows up from the sprout.',
+      km: 'ត្រួយខ្ចីលូតលាស់ចេញពីពន្លក។',
+      zh: '嫩芽从新芽中长出。',
+    },
+  },
+  {
+    id: 'leaf',
+    file: '03-leaf.jpg',
+    km: 'ក្បាច់ស្លឹក',
+    roman: 'kbach slek',
+    short: { en: 'Leaf', km: 'ស្លឹក', zh: '叶' },
+    name: { en: 'Leaf', km: 'ស្លឹក', zh: '叶' },
+    meaning: { en: 'The plant opens its leaves.', km: 'រុក្ខជាតិលាស្លឹក។', zh: '植物舒展叶片。' },
+  },
+  {
+    id: 'branch',
+    file: '04-branch.jpg',
+    km: 'ក្បាច់មែក',
+    roman: 'kbach mek',
+    short: { en: 'Branch', km: 'មែក', zh: '枝' },
+    name: { en: 'Branch', km: 'មែក', zh: '枝' },
+    meaning: { en: 'The plant grows branches.', km: 'រុក្ខជាតិចេញមែក។', zh: '植物长出枝条。' },
+  },
+  {
+    id: 'flower',
+    file: '05-flower.jpg',
+    km: 'ក្បាច់ផ្កា',
+    roman: 'kbach phka',
+    short: { en: 'Flower', km: 'ផ្កា', zh: '花' },
+    name: { en: 'Flower', km: 'ផ្កា', zh: '花' },
+    meaning: { en: 'The plant flowers.', km: 'រុក្ខជាតិចេញផ្កា។', zh: '植物开花。' },
+  },
+  {
+    id: 'kdeb',
+    file: '06-kdeb.jpg',
+    km: 'ក្បាច់ក្តិប',
+    roman: 'kbach kdeb',
+    short: { en: 'Budding fruit', km: 'ក្តិប', zh: '幼果' },
+    name: { en: 'Budding fruit', km: 'ក្តិប', zh: '幼果初结' },
+    meaning: {
+      en: 'After the flower, a young fruit begins to form.',
+      km: 'ក្រោយពេលចេញផ្កា ផ្លែខ្ចីចាប់ផ្ដើមកើតឡើង។',
+      zh: '花开之后，幼小的果实开始结出。',
+    },
+  },
+  {
+    id: 'mature-fruit',
+    file: '07-mature-fruit.jpg',
+    km: 'ក្បាច់ផ្លែចាស់',
+    roman: 'kbach phlae chas',
+    short: { en: 'Mature fruit', km: 'ផ្លែចាស់', zh: '成果' },
+    name: { en: 'Mature fruit', km: 'ផ្លែចាស់', zh: '成熟的果实' },
+    meaning: { en: 'The fruit grows full.', km: 'ផ្លែលូតលាស់ពេញវ័យ។', zh: '果实长成。' },
+  },
+  {
+    id: 'ripe-fruit-falling',
+    file: '08-ripe-fruit-falling.jpg',
+    km: 'ក្បាច់ផ្លែទុំជ្រុះ',
+    roman: 'kbach phlae tum chruh',
+    short: { en: 'Falling', km: 'ទុំជ្រុះ', zh: '坠落' },
+    name: { en: 'Ripe fruit falling', km: 'ផ្លែទុំជ្រុះ', zh: '熟果坠落' },
+    meaning: { en: 'The ripe fruit falls from the plant.', km: 'ផ្លែទុំជ្រុះពីដើម។', zh: '熟透的果实从植株上落下。' },
+  },
+];
+
+const labels = {
+  cycle: { en: 'From sprouting to ripe fruit falling', km: 'ពីដុះពន្លក ដល់ផ្លែទុំជ្រុះ', zh: '从发芽到熟果坠落' },
+  stage: { en: 'Stage {n} of 8', km: 'ដំណាក់កាលទី {n} នៃ ៨', zh: '第 {n} 阶段，共 8 个' },
+  meaning: { en: 'What it shows', km: 'អត្ថន័យ', zh: '含义' },
+  hint: {
+    en: 'Choose a gesture to see the hand and what it stands for.',
+    km: 'ចុចលើក្បាច់ណាមួយ ដើម្បីមើលរាងដៃ និងអត្ថន័យ។',
+    zh: '选择一个手势，查看手形及其含义。',
+  },
+};
+
+const locale: Locale = Astro.locals.locale ?? 'en';
+const slug = Astro.locals.pageSlug!;
+const t = useTranslations(locale);
+
+async function prepare(g: Gesture, index: number) {
+  const { image, credit } = getMedia(slug, `gestures/${g.file}`);
+  const [large, thumb] = await Promise.all([
+    getImage({ src: image, width: 720, format: 'webp' }),
+    getImage({ src: image, width: 200, format: 'webp' }),
+  ]);
+  return {
+    id: g.id,
+    km: g.km,
+    roman: g.roman,
+    short: g.short[locale],
+    name: g.name[locale],
+    meaning: g.meaning[locale],
+    stage: labels.stage[locale].replace('{n}', localNumber(index + 1, locale)),
+    number: localNumber(index + 1, locale),
+    photo: large.src,
+    thumb: thumb.src,
+    credit: `${t('photo')}: ${credit.author}, ${credit.license}`,
+    source: credit.source,
+  };
+}
+
+const all = await Promise.all(cycle.map((g, i) => prepare(g, i)));
+const first = all[0];
+---
+
+<section class="explorer span-full" data-explorer>
+  <div class="explorer__inner">
+    <p class="explorer__hint">{labels.hint[locale]}</p>
+
+    <div class="explorer__group">
+      <h3 class="explorer__group-title">{labels.cycle[locale]}</h3>
+      <ol class="explorer__row">
+        {
+          all.map((g) => (
+            <li>
+              <button type="button" class="chip glass glass--teal" data-gesture={g.id} aria-pressed={g.id === first.id ? 'true' : 'false'}>
+                <img class="chip__photo" src={g.thumb} alt="" width="200" height="250" loading="lazy" decoding="async" />
+                <span class="chip__number" aria-hidden="true">
+                  {g.number}
+                </span>
+                <span class="chip__km" lang="km">
+                  {g.km.replace('ក្បាច់', '')}
+                </span>
+                <span class="chip__name">{locale === 'km' ? g.roman : g.short}</span>
+              </button>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+
+    <div class="detail" aria-live="polite" data-detail>
+      <figure class="detail__photo">
+        <div class="detail__frame">
+          <img src={first.photo} alt="" width="720" height="900" data-field-photo />
+        </div>
+        <figcaption>
+          <a href={first.source} rel="noopener" data-field-credit>{first.credit}</a>
+        </figcaption>
+      </figure>
+      <div class="detail__text">
+        <p class="detail__stage" data-field="stage">{first.stage}</p>
+        <p class="detail__km" lang="km" data-field="km">{first.km}</p>
+        <p class="detail__roman" data-field="roman">{first.roman}</p>
+        <h3 class="detail__name" data-field="name">{first.name}</h3>
+        <p class="detail__label">{labels.meaning[locale]}</p>
+        <p class="detail__meaning" data-field="meaning">{first.meaning}</p>
+      </div>
+    </div>
+  </div>
+  <script type="application/json" data-gestures set:html={JSON.stringify(all)} />
+</section>
+
+<style>
+  .explorer {
+    margin-block: 3rem;
+    background: var(--peacock);
+    color: var(--cotton);
+    padding: clamp(2.5rem, 7vh, 4.5rem) var(--gutter);
+  }
+  .explorer__inner {
+    max-width: 68rem;
+    margin: 0 auto;
+    display: grid;
+    gap: 1.75rem;
+  }
+  .explorer__hint {
+    margin: 0;
+    max-width: 52ch;
+    font-size: var(--step-16);
+    color: color-mix(in oklab, var(--cotton) 85%, var(--peacock));
+  }
+  .explorer__group-title {
+    font-family: var(--reading);
+    font-size: var(--step-16);
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: var(--gold-pale);
+  }
+  .explorer__row {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(6.25rem, 1fr));
+    gap: 0.6rem;
+  }
+  @media (min-width: 960px) {
+    .explorer__row {
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+    }
+  }
+  .chip {
+    --k-radius: 0.75rem;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: grid;
+    justify-items: center;
+    align-content: start;
+    gap: 0.1rem;
+    padding: 0.6rem 0.45rem;
+    color: var(--cotton);
+    cursor: pointer;
+    text-align: center;
+  }
+  .chip[aria-pressed='true'] {
+    --k-tint: rgb(243 236 224 / 0.93);
+    --k-tint-hover: rgb(243 236 224 / 1);
+    --k-edge: 138 101 16;
+    color: var(--peacock-deep);
+  }
+  .chip__photo {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    background: #120c0d;
+    margin-bottom: 0.35rem;
+    border-radius: calc(var(--k-radius) - 0.15rem) calc(var(--k-radius) - 0.15rem) 0 0;
+  }
+  .chip__number {
+    position: absolute;
+    top: 0.6rem;
+    left: 0.4rem;
+    min-width: 1.5rem;
+    padding: 0 0.3rem;
+    border-radius: 999px;
+    background: rgb(10 60 64 / 0.85);
+    color: var(--gold-pale);
+    font-size: var(--step-14);
+    line-height: 1.5;
+  }
+  .chip[aria-pressed='true'] .chip__number {
+    background: var(--cotton);
+    color: var(--peacock-deep);
+  }
+  .chip__km {
+    font-family: var(--reading);
+    font-weight: 600;
+    font-size: var(--step-16);
+    line-height: 1.7;
+  }
+  .chip__name {
+    font-size: var(--step-14);
+    line-height: 1.3;
+  }
+
+  .detail {
+    display: grid;
+    gap: 1.25rem 2.5rem;
+    align-items: start;
+    padding-top: 1.75rem;
+    border-top: 1px solid color-mix(in oklab, var(--gold-pale) 35%, transparent);
+  }
+  @media (min-width: 640px) {
+    .detail {
+      grid-template-columns: minmax(11rem, 18rem) 1fr;
+    }
+  }
+  .detail__photo {
+    margin: 0;
+    max-width: 18rem;
+  }
+  .detail__frame {
+    position: relative;
+    padding: 6px;
+  }
+  .detail__frame::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: var(--gold-pale);
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 125' preserveAspectRatio='none'%3E%3Cpath d='M0.5 125 V46 C0.5 30 18 22 30 16 C40 11 46 6 50 0.6 C54 6 60 11 70 16 C82 22 99.5 30 99.5 46 V125' fill='none' stroke='%23000' stroke-width='1.2' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E")
+      center / 100% 100% no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 125' preserveAspectRatio='none'%3E%3Cpath d='M0.5 125 V46 C0.5 30 18 22 30 16 C40 11 46 6 50 0.6 C54 6 60 11 70 16 C82 22 99.5 30 99.5 46 V125' fill='none' stroke='%23000' stroke-width='1.2' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E")
+      center / 100% 100% no-repeat;
+  }
+  .detail__photo img {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    background: #120c0d;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 125' preserveAspectRatio='none'%3E%3Cpath d='M0 125 V46 C0 30 18 22 30 16 C40 11 46 6 50 0 C54 6 60 11 70 16 C82 22 100 30 100 46 V125 Z'/%3E%3C/svg%3E")
+      center / 100% 100% no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 125' preserveAspectRatio='none'%3E%3Cpath d='M0 125 V46 C0 30 18 22 30 16 C40 11 46 6 50 0 C54 6 60 11 70 16 C82 22 100 30 100 46 V125 Z'/%3E%3C/svg%3E")
+      center / 100% 100% no-repeat;
+  }
+  .detail__photo figcaption {
+    margin-top: 0.4rem;
+    font-size: var(--step-14);
+    line-height: 1.4;
+  }
+  .detail__photo figcaption a {
+    color: color-mix(in oklab, var(--cotton) 80%, var(--peacock));
+  }
+  .detail__stage {
+    margin: 0 0 0.25rem;
+    font-size: var(--step-14);
+    color: var(--gold-pale);
+  }
+  .detail__km {
+    margin: 0;
+    font-family: var(--reading);
+    font-weight: 700;
+    font-size: var(--step-36);
+    line-height: 1.6;
+    color: var(--gold-pale);
+  }
+  .detail__roman {
+    margin: 0;
+    font-style: italic;
+    color: color-mix(in oklab, var(--cotton) 85%, var(--peacock));
+  }
+  .detail__name {
+    margin: 0.75rem 0 1rem;
+    font-size: var(--step-36);
+    color: var(--cotton);
+  }
+  .detail__name:lang(km),
+  :global(:lang(km)) .detail__name {
+    font-family: var(--reading);
+    font-weight: 700;
+    font-size: var(--step-24);
+  }
+  .detail__label {
+    margin: 0;
+    font-size: var(--step-14);
+    font-weight: 600;
+    color: var(--gold-pale);
+  }
+  .detail__meaning {
+    margin: 0.2rem 0 0;
+    max-width: 48ch;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .detail__photo img.is-changing {
+      animation: photo-in 0.45s var(--ease-out);
+    }
+  }
+  @keyframes photo-in {
+    from {
+      opacity: 0.2;
+    }
+  }
+</style>
+
+<script>
+  interface GestureData {
+    id: string;
+    km: string;
+    roman: string;
+    name: string;
+    meaning: string;
+    stage: string;
+    photo: string;
+    credit: string;
+    source: string;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-explorer]').forEach((explorer) => {
+    const gestures: GestureData[] = JSON.parse(explorer.querySelector('[data-gestures]')!.textContent ?? '[]');
+    const buttons = [...explorer.querySelectorAll<HTMLButtonElement>('[data-gesture]')];
+    const detail = explorer.querySelector<HTMLElement>('[data-detail]')!;
+    const photo = explorer.querySelector<HTMLImageElement>('[data-field-photo]')!;
+    const credit = explorer.querySelector<HTMLAnchorElement>('[data-field-credit]')!;
+    const field = (name: string) => explorer.querySelector<HTMLElement>(`[data-field="${name}"]`)!;
+    const preloaded = new Set<string>();
+
+    function preload(id: string) {
+      const g = gestures.find((item) => item.id === id);
+      if (!g || preloaded.has(g.photo)) return;
+      preloaded.add(g.photo);
+      new Image().src = g.photo;
+    }
+
+    function show(id: string) {
+      const g = gestures.find((item) => item.id === id);
+      if (!g) return;
+      buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.gesture === id)));
+      for (const key of ['stage', 'km', 'roman', 'name', 'meaning'] as const) field(key).textContent = g[key];
+      photo.src = g.photo;
+      credit.href = g.source;
+      credit.textContent = g.credit;
+      photo.classList.remove('is-changing');
+      void photo.offsetWidth;
+      photo.classList.add('is-changing');
+    }
+
+    buttons.forEach((button) => {
+      const id = button.dataset.gesture!;
+      button.addEventListener('pointerenter', () => preload(id));
+      button.addEventListener('focus', () => preload(id));
+      button.addEventListener('click', () => {
+        show(id);
+        // On small screens the details sit below the buttons: bring them into view.
+        if (detail.getBoundingClientRect().top > window.innerHeight * 0.75) {
+          const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          detail.scrollIntoView({ block: 'nearest', behavior: reduce ? 'auto' : 'smooth' });
+        }
+      });
+    });
+  });
+</script>

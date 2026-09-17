@@ -1,0 +1,91 @@
+---
+import { topics, type Locale } from '../../site.config';
+import { localeUrl, useTranslations } from '../../i18n/utils';
+import type { LocalizedPage } from '../../lib/pages';
+
+interface Props {
+  current: LocalizedPage;
+  pages: LocalizedPage[];
+  locale: Locale;
+}
+
+const { current, pages, locale } = Astro.props;
+const t = useTranslations(locale);
+const topic = topics.find((tp) => tp.id === current.base.data.topic);
+const related = pages.filter((p) => p.slug !== current.slug && p.base.data.topic === current.base.data.topic).slice(0, 3);
+---
+
+<nav class="next on-plum" aria-label={topic ? t('moreIn', { topic: topic.name[locale] }) : t('allTopics')}>
+  <div class="next__inner">
+    {
+      topic && (
+        <p class="next__mark khmer-display" lang="km" aria-hidden="true">
+          {topic.mark}
+        </p>
+      )
+    }
+    <div>
+      {
+        related.length > 0 ? (
+          <>
+            <h2 class="next__title">{t('moreIn', { topic: topic!.name[locale] })}</h2>
+            <ul>
+              {related.map((p) => (
+                <li>
+                  <a href={localeUrl(locale, p.slug)}>{p.entry.data.title}</a>
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : (
+          topic && (
+            <p class="next__title">
+              <a href={localeUrl(locale, `topics/${topic.id}`)}>{topic.name[locale]}</a>
+            </p>
+          )
+        )
+      }
+      <p class="next__all"><a href={`${localeUrl(locale)}#topics`}>{t('allTopics')}</a></p>
+    </div>
+  </div>
+</nav>
+
+<style>
+  .next {
+    background: var(--weave), var(--silk-plum);
+    background-blend-mode: overlay;
+    color: var(--on-plum);
+    margin-top: 5rem;
+  }
+  .next__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem 3rem;
+    max-width: 64rem;
+    margin: 0 auto;
+    padding: 3.5rem var(--gutter);
+  }
+  .next__mark {
+    margin: 0;
+    font-size: var(--step-72);
+    line-height: 1.4;
+    color: var(--palace-gold);
+  }
+  .next__title {
+    margin: 0 0 0.5rem;
+    font-family: var(--display);
+    font-size: var(--step-36);
+  }
+  .next a {
+    color: var(--on-plum);
+  }
+  ul {
+    margin: 0;
+    padding-left: 1.2rem;
+  }
+  .next__all {
+    margin: 0.75rem 0 0;
+    font-size: var(--step-16);
+  }
+</style>

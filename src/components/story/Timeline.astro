@@ -1,0 +1,30 @@
+---
+// A vertical run of dated moments on a gold thread. Children are <TimelineItem>s.
+---
+
+<ol class="timeline span-wide">
+  <slot />
+</ol>
+
+<style>
+  .timeline {
+    list-style: none;
+    margin-block: 3rem;
+    padding: 0;
+    position: relative;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    top: 0.6rem;
+    bottom: 0.6rem;
+    left: 0.35rem;
+    width: 1px;
+    background: var(--palace-gold);
+  }
+  @media (min-width: 1100px) {
+    .timeline::before {
+      left: 9.35rem;
+    }
+  }
+</style>

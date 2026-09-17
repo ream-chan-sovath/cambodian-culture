@@ -1,0 +1,36 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { locales } from '../site.config';
+import { languageNames, ui } from '../i18n/ui';
+import { htmlLang, localeUrl } from '../i18n/utils';
+---
+
+<BaseLayout locale="en" title={ui.en.notFoundTitle}>
+  <div class="missing layout-grid">
+    <h1>{ui.en.notFoundTitle}</h1>
+    <p>{ui.en.notFoundBody}</p>
+    <ul>
+      {
+        locales.map((l) => (
+          <li lang={htmlLang[l]}>
+            <a href={localeUrl(l)}>
+              {ui[l].goHome} ({languageNames[l]})
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</BaseLayout>
+
+<style>
+  .missing {
+    padding: 5rem 0 6rem;
+  }
+  h1 {
+    font-size: var(--step-48);
+  }
+  ul {
+    padding-left: 1.2rem;
+  }
+</style>

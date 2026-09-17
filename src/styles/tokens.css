@@ -1,0 +1,46 @@
+:root {
+  /* Silk, gold and cotton. Gold is text-safe only on plum; use --gold-deep for text on cotton. */
+  --silk-plum: #3b1631;
+  --plum-deep: #280e21;
+  --plum-soft: #5a2a4c;
+  --peacock: #0f5257;
+  --peacock-deep: #0a3c40;
+  --palace-gold: #c9971c;
+  --gold-pale: #e9cf8a;
+  --gold-deep: #8a6510;
+  --cotton: #f3ece0;
+  --cotton-deep: #e7dcc9;
+  --ink: #1d1a1f;
+  --ink-soft: #4a4148;
+
+  --on-plum: #f3ece0;
+  --on-plum-soft: color-mix(in oklab, #f3ece0 80%, #3b1631);
+  --rule-gold: color-mix(in oklab, var(--gold-deep) 45%, transparent);
+
+  /* One display voice, one reading voice. Each stack covers Latin, Khmer and Chinese. */
+  --display: var(--font-bodoni, 'Bodoni Moda'), var(--font-moul, 'Moul'), var(--font-noto-sc, 'Noto Serif SC'), serif;
+  --khmer-display: var(--font-moul, 'Moul'), serif;
+  --reading: var(--font-literata, 'Literata'), var(--font-noto-khmer, 'Noto Serif Khmer'), var(--font-noto-sc, 'Noto Serif SC'), serif;
+
+  /* Type scale in classic typographic steps: 14 16 18 21 24 36 48 72 96 */
+  --step-14: 0.875rem;
+  --step-16: 1rem;
+  --step-18: 1.125rem;
+  --step-21: 1.3125rem;
+  --step-24: 1.5rem;
+  --step-36: clamp(1.875rem, 1.4rem + 1.6vw, 2.25rem);
+  --step-48: clamp(2.25rem, 1.6rem + 2.4vw, 3rem);
+  --step-72: clamp(2.75rem, 1.5rem + 4.8vw, 4.5rem);
+  --step-96: clamp(3.25rem, 1.4rem + 7vw, 6rem);
+
+  --gutter: 16px;
+  --measure: 66ch;
+  --radius-arch: 999px 999px 0 0;
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+@media (min-width: 720px) {
+  :root {
+    --gutter: 32px;
+  }
+}

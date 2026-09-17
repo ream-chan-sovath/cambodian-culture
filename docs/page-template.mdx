@@ -1,0 +1,56 @@
+---
+# Copy this file to src/content/pages/<your-page-slug>/en.mdx and fill it in.
+# The folder name becomes the address: /en/<your-page-slug>/
+title: The page title
+nativeTitle: ចំណងជើងជាភាសាខ្មែរ
+standfirst: One or two sentences that tell the reader what the page is about and why it matters.
+topic: arts # arts | temples | food | festivals | language
+format: story # story | photo-essay | interactive
+published: 2026-01-01
+hero: hero-image.jpg # a file in this page's images/ folder, added with `npm run image`
+heroAlt: Describe what the hero image shows.
+heroPosition: 50% 50% # optional: which part of the image to keep when cropped
+translation: original
+sources:
+  - id: example
+    author: Author Name
+    title: Title of the article, book or page
+    container: Newspaper, journal or website
+    year: 2024
+    url: https://example.org/article
+    accessed: 2026-01-01
+---
+
+Opening paragraph. It appears a little larger than the rest. Every factual claim gets a note.[^example]
+
+<ChapterGate n={1} title="First chapter" km="ជំពូកទីមួយ" />
+
+<Figure name="some-image.jpg" alt="What the image shows, for people who can't see it.">
+Caption for the image. It can have a note too.[^example]
+</Figure>
+
+Chapter text. The photo above floats beside this paragraph.
+
+<PullQuote cite="Who said it, when">
+A short quote, under 15 words.[^example]
+</PullQuote>
+
+A Khmer word the reader can tap: <Term km="ក្បាច់" roman="kbach">What the word means.</Term>
+
+<PhotoSequence
+  label="What this run of photos is about"
+  items={[
+    { name: 'photo-one.jpg', alt: 'What it shows.', caption: 'Caption.' },
+    { name: 'photo-two.jpg', alt: 'What it shows.', caption: 'Caption.' },
+  ]}
+/>
+
+<Timeline>
+<TimelineItem year="1906" title="Something happened">
+
+What happened, with a note.[^example]
+
+</TimelineItem>
+</Timeline>
+
+[^example]: [Author 2024](#ref-example), page or section if useful.

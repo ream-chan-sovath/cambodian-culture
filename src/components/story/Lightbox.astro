@@ -1,0 +1,77 @@
+---
+import { useTranslations } from '../../i18n/utils';
+
+// One shared viewer for every zoomable image on the page.
+const locale = Astro.locals.locale ?? 'en';
+const t = useTranslations(locale);
+---
+
+<dialog class="lightbox" data-lightbox-dialog aria-label={t('viewLarger')}>
+  <button type="button" class="lightbox__close glass" data-close>{t('close')}</button>
+  <img alt="" />
+</dialog>
+
+<style>
+  .lightbox {
+    width: 100vw;
+    height: 100dvh;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 3.5rem var(--gutter) var(--gutter);
+    border: 0;
+    background: rgb(40 14 33 / 0.96);
+    color: var(--on-plum);
+  }
+  .lightbox[open] {
+    display: grid;
+    place-items: center;
+  }
+  .lightbox::backdrop {
+    background: transparent;
+  }
+  .lightbox img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+  .lightbox__close {
+    position: absolute;
+    top: 1rem;
+    right: var(--gutter);
+    padding: 0.5rem 1.1rem;
+    color: var(--on-plum);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .lightbox[open] img {
+      animation: lightbox-in 0.35s var(--ease-out);
+    }
+  }
+  @keyframes lightbox-in {
+    from {
+      opacity: 0;
+      scale: 0.97;
+    }
+  }
+</style>
+
+<script>
+  const dialog = document.querySelector<HTMLDialogElement>('[data-lightbox-dialog]');
+  if (dialog) {
+    const img = dialog.querySelector('img')!;
+    let opener: HTMLElement | null = null;
+    document.querySelectorAll<HTMLElement>('[data-lightbox]').forEach((trigger) => {
+      trigger.addEventListener('click', () => {
+        opener = trigger;
+        img.src = trigger.dataset.src ?? '';
+        img.alt = trigger.dataset.alt ?? '';
+        dialog.showModal();
+      });
+    });
+    dialog.querySelector('[data-close]')!.addEventListener('click', () => dialog.close());
+    dialog.addEventListener('click', (event) => {
+      if (event.target === dialog) dialog.close();
+    });
+    dialog.addEventListener('close', () => opener?.focus());
+  }
+</script>

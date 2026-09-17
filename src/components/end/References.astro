@@ -1,0 +1,66 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import type { Locale } from '../../site.config';
+import { formatDate, useTranslations } from '../../i18n/utils';
+
+type Source = NonNullable<CollectionEntry<'pages'>['data']['sources']>[number];
+
+interface Props {
+  sources: Source[];
+  locale: Locale;
+}
+
+const { sources, locale } = Astro.props;
+const t = useTranslations(locale);
+---
+
+{
+  sources.length > 0 && (
+    <section class="end-section" aria-labelledby="references-title">
+      <h2 id="references-title">{t('references')}</h2>
+      <ol class="refs">
+        {sources.map((s) => (
+          <li id={`ref-${s.id}`}>
+            <span>{s.author}.</span>{' '}
+            {s.url ? (
+              <a href={s.url} lang={s.lang} rel="noopener">
+                {s.title}
+              </a>
+            ) : (
+              <cite lang={s.lang}>{s.title}</cite>
+            )}
+            .{s.container && <> <i lang={s.lang}>{s.container}</i>.</>}
+            {s.publisher && <> {s.publisher}{s.year ? ',' : '.'}</>}
+            {s.year && <> {s.year}.</>}
+            {s.accessed && <span class="refs__accessed"> ({t('accessed', { date: formatDate(s.accessed, locale) })})</span>}
+          </li>
+        ))}
+      </ol>
+    </section>
+  )
+}
+
+<style>
+  .refs {
+    margin: 0;
+    padding-left: 1.4rem;
+    display: grid;
+    gap: 0.6rem;
+    font-size: var(--step-16);
+    line-height: 1.55;
+  }
+  .refs li {
+    padding-left: 0.3rem;
+    scroll-margin-top: 6rem;
+  }
+  .refs li:target {
+    background: color-mix(in oklab, var(--palace-gold) 18%, transparent);
+    outline: 6px solid color-mix(in oklab, var(--palace-gold) 18%, transparent);
+  }
+  .refs a {
+    overflow-wrap: anywhere;
+  }
+  .refs__accessed {
+    color: var(--ink-soft);
+  }
+</style>

@@ -1,0 +1,96 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import PageRow from '../../../components/site/PageRow.astro';
+import KbachBorder from '../../../components/story/KbachBorder.astro';
+import Breadcrumbs from '../../../components/site/Breadcrumbs.astro';
+import { enabledLocales, topics, type Locale } from '../../../site.config';
+import { getPagesFor } from '../../../lib/pages';
+import { localeUrl, useTranslations } from '../../../i18n/utils';
+
+export function getStaticPaths() {
+  return enabledLocales.flatMap((locale) => topics.map((topic) => ({ params: { locale, topic: topic.id } })));
+}
+
+const locale = Astro.params.locale as Locale;
+const topic = topics.find((tp) => tp.id === Astro.params.topic)!;
+const t = useTranslations(locale);
+const pages = (await getPagesFor(locale)).filter((p) => p.base.data.topic === topic.id);
+---
+
+<BaseLayout locale={locale} title={topic.name[locale]} description={topic.blurb[locale]} path={`topics/${topic.id}/`} headerTone="plum">
+  <header class="topic-head on-plum">
+    <div class="topic-head__crumbs">
+      <Breadcrumbs locale={locale} />
+    </div>
+    <div class="topic-head__inner">
+      <p class="topic-head__mark khmer-display" lang="km" aria-hidden="true">{topic.mark}</p>
+      <div>
+        <h1 class="topic-head__title">{topic.name[locale]}</h1>
+        <p class="topic-head__blurb">{topic.blurb[locale]}</p>
+      </div>
+    </div>
+    <KbachBorder />
+  </header>
+
+  <section class="topic-pages">
+    {pages.length > 0 ? pages.map((page) => <PageRow page={page} locale={locale} showTopic={false} />) : <p class="topic-pages__empty">{t('topicEmpty')}</p>}
+    <p class="topic-pages__all"><a href={`${localeUrl(locale)}#topics`}>{t('allTopics')}</a></p>
+  </section>
+</BaseLayout>
+
+<style>
+  .topic-head {
+    background: var(--weave), var(--silk-plum);
+    background-blend-mode: overlay;
+    color: var(--on-plum);
+    padding-bottom: 1rem;
+  }
+  .topic-head__crumbs {
+    max-width: 64rem;
+    margin: 0 auto;
+    padding: 1.5rem var(--gutter) 0;
+  }
+  .topic-head__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 3rem;
+    max-width: 64rem;
+    margin: 0 auto;
+    padding: clamp(2.5rem, 7vh, 4.5rem) var(--gutter) 2rem;
+  }
+  .topic-head__mark {
+    margin: 0;
+    font-size: var(--step-96);
+    line-height: 1.45;
+    color: var(--palace-gold);
+  }
+  .topic-head__title {
+    font-size: var(--step-48);
+  }
+  .topic-head__title:lang(km),
+  :global(:lang(km)) .topic-head__title {
+    font-family: var(--reading);
+    font-weight: 700;
+    font-size: var(--step-36);
+    line-height: 1.6;
+  }
+  .topic-head__blurb {
+    margin: 0.75rem 0 0;
+    max-width: 44ch;
+    font-size: var(--step-21);
+    color: var(--on-plum-soft);
+  }
+  .topic-pages {
+    max-width: 64rem;
+    margin: 0 auto;
+    padding: 2.5rem var(--gutter) 5rem;
+  }
+  .topic-pages__empty {
+    font-size: var(--step-21);
+    max-width: 44ch;
+  }
+  .topic-pages__all {
+    margin-top: 2.5rem;
+  }
+</style>

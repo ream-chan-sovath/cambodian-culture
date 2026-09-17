@@ -1,0 +1,52 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ImageCredits from '../../components/end/ImageCredits.astro';
+import '../../styles/prose.css';
+import { enabledLocales, type Locale } from '../../site.config';
+import { getAllCredits } from '../../lib/media';
+import { getPagesFor } from '../../lib/pages';
+import { useTranslations } from '../../i18n/utils';
+
+export function getStaticPaths() {
+  return enabledLocales.map((locale) => ({ params: { locale } }));
+}
+
+const locale = Astro.params.locale as Locale;
+const t = useTranslations(locale);
+const pages = await getPagesFor(locale);
+const groups = getAllCredits()
+  .map(([slug, credits]) => ({ page: pages.find((p) => p.slug === slug), credits }))
+  .filter((g) => g.page);
+
+const intro = {
+  en: 'Every image on the site, with its creator, licence and where it came from. Most come from Wikimedia Commons and are public domain or shared under Creative Commons licences.',
+  km: 'រូបភាពទាំងអស់នៅលើគេហទំព័រនេះ ព្រមទាំងអ្នកបង្កើត អាជ្ញាប័ណ្ណ និងប្រភព។ រូបភាពភាគច្រើនមកពី Wikimedia Commons ហើយជាសាធារណសម្បត្តិ ឬចែករំលែកក្រោមអាជ្ញាប័ណ្ណ Creative Commons។',
+  zh: '本站所有图片及其作者、许可协议和出处。大多数图片来自维基共享资源，属于公有领域或以知识共享许可协议发布。',
+};
+---
+
+<BaseLayout locale={locale} title={t('credits')} path="credits/">
+  <div class="plain layout-grid">
+    <h1>{t('credits')}</h1>
+    <p class="plain__intro">{intro[locale]}</p>
+    {groups.map((g) => <ImageCredits credits={g.credits} locale={locale} title={g.page!.entry.data.title} />)}
+  </div>
+</BaseLayout>
+
+<style>
+  .plain {
+    padding: 3.5rem 0 5rem;
+  }
+  h1 {
+    font-size: var(--step-48);
+  }
+  h1:lang(km),
+  :global(:lang(km)) h1 {
+    font-family: var(--khmer-display);
+    font-size: var(--step-36);
+    line-height: 1.6;
+  }
+  .plain__intro {
+    font-size: var(--step-21);
+  }
+</style>

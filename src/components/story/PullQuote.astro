@@ -1,0 +1,61 @@
+---
+interface Props {
+  /** Who said it, and when. A footnote can follow in the slot text instead. */
+  cite: string;
+  lang?: string;
+}
+
+const { cite, lang } = Astro.props;
+---
+
+<figure class="pull">
+  <blockquote lang={lang}>
+    <slot />
+  </blockquote>
+  <figcaption>{cite}</figcaption>
+</figure>
+
+<style>
+  /* Sits beside a floating photo when there's room; otherwise drops below it. */
+  .pull {
+    min-width: min(100%, 20rem);
+    margin-block: 3.5rem;
+    padding: 0;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0 1rem;
+  }
+  .pull::before {
+    content: '“';
+    font-family: var(--display);
+    font-size: 6rem;
+    line-height: 0.8;
+    color: var(--palace-gold);
+  }
+  blockquote {
+    margin: 0;
+    font-family: var(--display);
+    font-style: italic;
+    font-size: var(--step-36);
+    line-height: 1.25;
+    text-wrap: balance;
+    color: var(--silk-plum);
+  }
+  blockquote :global(p) {
+    margin: 0;
+  }
+  blockquote:lang(km),
+  :global(:lang(km)) blockquote {
+    font-style: normal;
+    font-family: var(--reading);
+    font-weight: 600;
+    font-size: var(--step-24);
+    line-height: 1.8;
+  }
+  figcaption {
+    grid-column: 2;
+    margin-top: 0.9rem;
+    font-size: var(--step-16);
+    color: var(--ink-soft);
+  }
+</style>

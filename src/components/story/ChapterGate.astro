@@ -1,0 +1,169 @@
+---
+import { Image } from 'astro:assets';
+import { getMedia } from '../../lib/media';
+import { khmerDigits, useTranslations } from '../../i18n/utils';
+import KbachBorder from './KbachBorder.astro';
+import Credit from './Credit.astro';
+
+// A full-width plum band that opens each chapter. The gold border draws itself in
+// once as it scrolls into view: the one motion on the page nobody has to ask for.
+interface Props {
+  n: number;
+  title: string;
+  /** The chapter title in Khmer script (shown on English and Chinese pages). */
+  km?: string;
+  lede?: string;
+  /** Optional background image from the page's images folder, tinted plum. */
+  image?: string;
+  imagePosition?: string;
+}
+
+const { n, title, km, lede, image, imagePosition } = Astro.props;
+const locale = Astro.locals.locale ?? 'en';
+const slug = Astro.locals.pageSlug!;
+const t = useTranslations(locale);
+const media = image ? getMedia(slug, image) : undefined;
+const id = `chapter-${n}`;
+---
+
+<section class="gate on-plum span-full" aria-labelledby={id} data-gate>
+  {
+    media && (
+      <Image
+        class="gate__image"
+        src={media.image}
+        alt=""
+        widths={[800, 1400, 2000].filter((w) => w <= media.image.width)}
+        sizes="100vw"
+        style={{ objectPosition: imagePosition }}
+      />
+    )
+  }
+  <KbachBorder class="gate__border" />
+  <div class="gate__inner">
+    <p class="gate__number khmer-display" aria-hidden="true">{khmerDigits(n)}</p>
+    <div class="gate__text">
+      <h2 id={id} class="gate__title">
+        <span class="sr-only">{t('chapter', { n })}: </span>{title}
+      </h2>
+      {km && locale !== 'km' && <p class="gate__native khmer-display" lang="km">{km}</p>}
+      {lede && <p class="gate__lede">{lede}</p>}
+    </div>
+  </div>
+  <KbachBorder class="gate__border" flip />
+  {media && <p class="gate__credit"><Credit credit={media.credit} locale={locale} /></p>}
+</section>
+
+<style>
+  .gate {
+    position: relative;
+    isolation: isolate;
+    background: var(--weave), var(--silk-plum);
+    background-blend-mode: overlay;
+    color: var(--on-plum);
+    margin-block: 4rem;
+    padding-block: 1.5rem;
+    overflow: hidden;
+  }
+  .gate__image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: -1;
+    opacity: 0.28;
+    mix-blend-mode: luminosity;
+    filter: contrast(1.1);
+  }
+  .gate__inner {
+    display: grid;
+    gap: 0.5rem 2.5rem;
+    align-items: center;
+    max-width: 64rem;
+    margin: 0 auto;
+    padding: clamp(3rem, 9vh, 6rem) var(--gutter);
+  }
+  @media (min-width: 760px) {
+    .gate__inner {
+      grid-template-columns: auto 1fr;
+    }
+  }
+  .gate__number {
+    margin: 0;
+    font-size: clamp(5rem, 3rem + 10vw, 10rem);
+    line-height: 1.1;
+    color: var(--palace-gold);
+  }
+  .gate__title {
+    font-size: var(--step-72);
+    font-weight: 500;
+    line-height: 1.05;
+    color: var(--on-plum);
+  }
+  .gate__title:lang(km),
+  :global(:lang(km)) .gate__title {
+    font-family: var(--khmer-display);
+    font-size: var(--step-48);
+    line-height: 1.6;
+  }
+  .gate__native {
+    margin: 0.75rem 0 0;
+    font-size: var(--step-24);
+    color: var(--gold-pale);
+  }
+  .gate__lede {
+    margin: 1.25rem 0 0;
+    max-width: 44ch;
+    font-size: var(--step-21);
+    color: var(--on-plum-soft);
+  }
+  .gate__credit {
+    position: absolute;
+    right: var(--gutter);
+    bottom: 0.2rem;
+    margin: 0;
+  }
+
+  /* Draw the ornament in. Only when JS can reveal it and the reader allows motion. */
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.js) .gate :global(.kbach-line) {
+      stroke-dasharray: 1;
+      stroke-dashoffset: 1;
+      transition: stroke-dashoffset 1.8s var(--ease-out);
+    }
+    :global(.js) .gate :global(.kbach-border--flip .kbach-line) {
+      transition-delay: 0.35s;
+    }
+    :global(.js) .gate.is-visible :global(.kbach-line) {
+      stroke-dashoffset: 0;
+    }
+    :global(.js) .gate .gate__number {
+      opacity: 0;
+      transform: translateY(0.4em);
+      transition:
+        opacity 0.9s var(--ease-out) 0.2s,
+        transform 0.9s var(--ease-out) 0.2s;
+    }
+    :global(.js) .gate.is-visible .gate__number {
+      opacity: 1;
+      transform: none;
+    }
+  }
+</style>
+
+<script>
+  const gates = document.querySelectorAll<HTMLElement>('[data-gate]');
+  const observer = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          observer.unobserve(entry.target);
+        }
+      }
+    },
+    { threshold: 0.35 },
+  );
+  gates.forEach((gate) => observer.observe(gate));
+</script>

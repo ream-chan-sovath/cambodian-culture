@@ -1,0 +1,101 @@
+---
+// An inline Khmer word the reader can tap to see the script, a romanization and a short meaning.
+interface Props {
+  km: string;
+  roman?: string;
+  /** Which form to show in the sentence. Defaults to the romanization, or Khmer script on Khmer pages. */
+  show?: 'km' | 'roman';
+}
+
+const { km, roman, show } = Astro.props;
+const locale = Astro.locals.locale ?? 'en';
+const showKhmer = show === 'km' || locale === 'km' || !roman;
+const label = showKhmer ? km : roman;
+const id = `term-${Math.random().toString(36).slice(2, 9)}`;
+---
+
+<span class="term" data-term><button type="button" class="term__word" aria-expanded="false" aria-controls={id} lang={showKhmer ? 'km' : undefined}>{label}</button><span class="term__pop glass glass--panel glass--strong" id={id} role="note" hidden><span class="term__km" lang="km">{km}</span>{roman && locale !== 'km' && <span class="term__roman">{roman}</span>}<span class="term__def"><slot /></span></span></span>
+
+<style>
+  .term {
+    position: relative;
+  }
+  .term__word {
+    padding: 0;
+    border: 0;
+    background: none;
+    font-style: italic;
+    color: var(--peacock);
+    text-decoration: underline dotted;
+    text-underline-offset: 0.25em;
+    cursor: help;
+  }
+  .term__word:lang(km) {
+    font-style: normal;
+  }
+  .term__pop {
+    position: absolute;
+    z-index: 20;
+    left: 50%;
+    bottom: calc(100% + 0.9rem);
+    translate: calc(-50% + var(--shift, 0px)) 0;
+    width: max-content;
+    max-width: min(22rem, calc(100vw - 2 * var(--gutter)));
+    display: grid;
+    gap: 0.15rem;
+    padding: 0.9rem 1.1rem;
+    color: var(--on-plum);
+    font-size: var(--step-16);
+    line-height: 1.45;
+    font-style: normal;
+  }
+  .term__pop[hidden] {
+    display: none;
+  }
+  .term__km {
+    font-size: var(--step-24);
+    line-height: 1.6;
+    color: var(--gold-pale);
+  }
+  .term__roman {
+    font-style: italic;
+    color: var(--on-plum-soft);
+  }
+</style>
+
+<script>
+  function closeAll(except?: HTMLElement) {
+    document.querySelectorAll<HTMLElement>('[data-term]').forEach((term) => {
+      if (term === except) return;
+      term.querySelector('button')!.setAttribute('aria-expanded', 'false');
+      term.querySelector<HTMLElement>('.term__pop')!.hidden = true;
+    });
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-term]').forEach((term) => {
+    const button = term.querySelector('button')!;
+    const pop = term.querySelector<HTMLElement>('.term__pop')!;
+    button.addEventListener('click', (event) => {
+      event.stopPropagation();
+      const open = button.getAttribute('aria-expanded') === 'true';
+      closeAll(term);
+      button.setAttribute('aria-expanded', String(!open));
+      pop.hidden = open;
+      if (!open) {
+        // Keep the bubble on screen near the edges.
+        pop.style.setProperty('--shift', '0px');
+        const rect = pop.getBoundingClientRect();
+        const margin = 12;
+        let shift = 0;
+        if (rect.left < margin) shift = margin - rect.left;
+        if (rect.right > window.innerWidth - margin) shift = window.innerWidth - margin - rect.right;
+        pop.style.setProperty('--shift', `${shift}px`);
+      }
+    });
+  });
+
+  document.addEventListener('click', () => closeAll());
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeAll();
+  });
+</script>

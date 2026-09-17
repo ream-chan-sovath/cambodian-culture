@@ -1,0 +1,140 @@
+---
+import { Image, getImage } from 'astro:assets';
+import { getMedia } from '../../lib/media';
+import { useTranslations } from '../../i18n/utils';
+import Credit from './Credit.astro';
+
+// A sideways run of photographs for photo-essay passages. Scrolls by touch, trackpad or the buttons.
+interface Item {
+  name: string;
+  alt: string;
+  caption: string;
+  position?: string;
+}
+
+interface Props {
+  items: Item[];
+  label: string;
+}
+
+const { items, label } = Astro.props;
+const locale = Astro.locals.locale ?? 'en';
+const slug = Astro.locals.pageSlug!;
+const t = useTranslations(locale);
+const slides = await Promise.all(
+  items.map(async (item) => {
+    const media = getMedia(slug, item.name);
+    const large = await getImage({ src: media.image, width: Math.min(media.image.width, 2000) });
+    return { ...item, ...media, large: large.src };
+  }),
+);
+---
+
+<section class="sequence span-wide" aria-label={label} data-sequence>
+  <div class="sequence__track" tabindex="0">
+    {
+      slides.map((slide) => (
+        <figure class="sequence__item">
+          <button type="button" class="sequence__zoom" data-lightbox data-src={slide.large} data-alt={slide.alt} aria-label={`${t('viewLarger')}: ${slide.alt}`}>
+            <Image
+              src={slide.image}
+              alt={slide.alt}
+              widths={[320, 480, 640].filter((w) => w <= slide.image.width)}
+              sizes="15rem"
+              style={{ objectPosition: slide.position }}
+            />
+          </button>
+          <figcaption>
+            <span>{slide.caption}</span>
+            <Credit credit={slide.credit} locale={locale} />
+          </figcaption>
+        </figure>
+      ))
+    }
+  </div>
+  <div class="sequence__controls">
+    <button type="button" class="glass glass--strong" data-dir="-1" aria-label={t('previous')}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 8 12l7 7" /></svg>
+    </button>
+    <button type="button" class="glass glass--strong" data-dir="1" aria-label={t('next')}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg>
+    </button>
+  </div>
+</section>
+
+<style>
+  .sequence {
+    margin-block: 3rem;
+    padding-block: 1.25rem 0.75rem;
+    border-block: 1px solid var(--rule-gold);
+  }
+  .sequence__track {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: min(60vw, 15rem);
+    gap: 1rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 0.5rem;
+    scrollbar-width: thin;
+    scrollbar-color: var(--gold-deep) transparent;
+  }
+  .sequence__item {
+    margin: 0;
+    scroll-snap-align: start;
+  }
+  .sequence__zoom {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: zoom-in;
+  }
+  .sequence__item img {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+  }
+  .sequence__item figcaption {
+    display: grid;
+    gap: 0.25rem;
+    margin-top: 0.6rem;
+    font-size: var(--step-14);
+    line-height: 1.5;
+  }
+  .sequence__controls {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.6rem;
+    padding-top: 1rem;
+  }
+  .sequence__controls button {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    color: var(--on-plum);
+  }
+  .sequence__controls svg {
+    width: 1.25rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-sequence]').forEach((sequence) => {
+    const track = sequence.querySelector<HTMLElement>('.sequence__track')!;
+    sequence.querySelectorAll<HTMLButtonElement>('[data-dir]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const item = track.querySelector<HTMLElement>('.sequence__item');
+        const step = item ? item.getBoundingClientRect().width + 20 : track.clientWidth * 0.8;
+        const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        track.scrollBy({ left: step * Number(button.dataset.dir), behavior: reduce ? 'auto' : 'smooth' });
+      });
+    });
+  });
+</script>

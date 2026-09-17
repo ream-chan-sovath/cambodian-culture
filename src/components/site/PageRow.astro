@@ -1,0 +1,109 @@
+---
+import { Image } from 'astro:assets';
+import { topics, type Locale } from '../../site.config';
+import { getMedia } from '../../lib/media';
+import { localeUrl, localNumber, useTranslations } from '../../i18n/utils';
+import type { LocalizedPage } from '../../lib/pages';
+
+interface Props {
+  page: LocalizedPage;
+  locale: Locale;
+  showTopic?: boolean;
+}
+
+const { page, locale, showTopic = true } = Astro.props;
+const t = useTranslations(locale);
+const data = page.entry.data;
+const heroName = data.hero ?? page.base.data.hero;
+const media = heroName ? getMedia(page.slug, heroName) : undefined;
+const topic = topics.find((tp) => tp.id === page.base.data.topic);
+const format = page.base.data.format;
+---
+
+<article class:list={['row', `row--${format}`]}>
+  {
+    media && (
+      <Image
+        class="row__image"
+        src={media.image}
+        alt=""
+        widths={[240, 480].filter((w) => w <= media.image.width)}
+        sizes="9rem"
+        style={{ objectPosition: data.heroPosition ?? page.base.data.heroPosition }}
+      />
+    )
+  }
+  <div class="row__text">
+    {showTopic && topic && <p class="row__topic">{topic.name[locale]}</p>}
+    <h3 class="row__title">
+      <a href={localeUrl(locale, page.slug)}>{data.title}</a>
+    </h3>
+    <p class="row__standfirst">{data.standfirst}</p>
+    <p class="row__meta">
+      <span>{t('minRead', { n: localNumber(page.readingMinutes, locale) })}</span>
+      {data.translation === 'draft' && <span class="badge">{t('draftBadge')}</span>}
+    </p>
+  </div>
+</article>
+
+<style>
+  .row {
+    position: relative;
+    display: grid;
+    grid-template-columns: clamp(6rem, 22vw, 9rem) minmax(0, 1fr);
+    gap: 1rem clamp(1rem, 3vw, 2rem);
+    align-items: start;
+    padding: 2rem 0;
+    border-top: 1px solid var(--rule-gold);
+  }
+  .row__image {
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+  }
+  .row--photo-essay .row__image {
+    aspect-ratio: 4 / 5;
+  }
+  .row__topic {
+    margin: 0 0 0.4rem;
+    font-size: var(--step-16);
+    color: var(--gold-deep);
+  }
+  .row__title {
+    font-size: var(--step-36);
+  }
+  .row__title a {
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .row__title a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+  .row:hover .row__title a {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+  }
+  .row__title:lang(km),
+  :global(:lang(km)) .row__title {
+    font-family: var(--reading);
+    font-weight: 700;
+    font-size: var(--step-24);
+    line-height: 1.7;
+  }
+  .row__standfirst {
+    margin: 0.6rem 0 0;
+    max-width: 52ch;
+    color: var(--ink-soft);
+  }
+  .row__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1rem;
+    margin: 0.75rem 0 0;
+    font-size: var(--step-14);
+    color: var(--ink-soft);
+  }
+</style>

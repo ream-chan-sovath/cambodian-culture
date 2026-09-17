@@ -1,0 +1,181 @@
+---
+import { Image } from 'astro:assets';
+import { topics, type Locale } from '../../site.config';
+import { getMedia } from '../../lib/media';
+import { formatDate, localeUrl, localNumber, useTranslations } from '../../i18n/utils';
+import { languageNameIn } from '../../i18n/ui';
+import type { LocalizedPage } from '../../lib/pages';
+import Credit from './Credit.astro';
+import Breadcrumbs from '../site/Breadcrumbs.astro';
+
+interface Props {
+  page: LocalizedPage;
+}
+
+const { page } = Astro.props;
+const { locale, entry, base, slug, isFallback } = page;
+const t = useTranslations(locale);
+const data = entry.data;
+const topicId = base.data.topic;
+const topic = topics.find((tp) => tp.id === topicId);
+const heroName = data.hero ?? base.data.hero;
+const media = heroName ? getMedia(slug, heroName) : undefined;
+const nativeTitle = data.nativeTitle ?? base.data.nativeTitle;
+const published = base.data.published;
+const entryLocale = entry.id.split('/').at(-1) as Locale;
+const showNative = nativeTitle && entryLocale !== 'km';
+---
+
+<header class="hero on-plum span-full">
+  <div class="hero__text">
+    <Breadcrumbs locale={locale} items={topic ? [{ label: topic.name[locale], href: localeUrl(locale, `topics/${topic.id}`) }] : []} />
+    {showNative && <p class="hero__native khmer-display" lang="km">{nativeTitle}</p>}
+    <h1 class="hero__title">{data.title}</h1>
+    <p class="hero__standfirst">{data.standfirst}</p>
+    <div class="hero__meta">
+      {published && <span>{t('published')} <time datetime={published.toISOString()}>{formatDate(published, locale)}</time></span>}
+      <span>{t('minRead', { n: localNumber(page.readingMinutes, locale) })}</span>
+    </div>
+    {
+      isFallback && (
+        <p class="hero__note" role="note">
+          {t('fallbackNote', { lang: languageNameIn[locale][locale], source: languageNameIn[locale][entryLocale] })}
+        </p>
+      )
+    }
+  </div>
+  {
+    media && (
+      <figure class="hero__figure">
+        <div class="hero__arch">
+          <Image
+            src={media.image}
+            alt={data.heroAlt ?? base.data.heroAlt ?? ''}
+            widths={[320, 480, 640, 960].filter((w) => w <= media.image.width)}
+            sizes="(min-width: 700px) 16rem, 12rem"
+            loading="eager"
+            fetchpriority="high"
+            style={{ objectPosition: data.heroPosition ?? base.data.heroPosition }}
+          />
+          <svg class="hero__arch-line" viewBox="0 0 100 125" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0 125 V46 C0 30 18 22 30 16 C40 11 46 6 50 0 C54 6 60 11 70 16 C82 22 100 30 100 46 V125" />
+          </svg>
+        </div>
+        <figcaption>
+          <Credit credit={media.credit} locale={locale} />
+        </figcaption>
+      </figure>
+    )
+  }
+</header>
+
+<style>
+  .hero {
+    display: grid;
+    gap: 2.5rem;
+    align-items: center;
+    background: var(--weave), var(--silk-plum);
+    background-blend-mode: overlay;
+    color: var(--on-plum);
+    padding: clamp(2rem, 6vh, 4.5rem) var(--gutter) clamp(3rem, 8vh, 5rem);
+  }
+  /* Photo beside the title from tablets up. */
+  @media (min-width: 700px) {
+    .hero {
+      grid-template-columns: minmax(0, 1fr) clamp(11rem, 24vw, 16rem);
+      gap: 2.5rem clamp(2rem, 5vw, 4rem);
+      padding-inline: max(var(--gutter), calc((100vw - 68rem) / 2));
+    }
+  }
+  .hero__text {
+    max-width: 44rem;
+  }
+  .hero__native {
+    margin: 1.5rem 0 0;
+    font-size: var(--step-96);
+    line-height: 1.45;
+    color: var(--palace-gold);
+  }
+  .hero__title {
+    margin-top: 0.75rem;
+    font-size: var(--step-48);
+    font-weight: 500;
+    line-height: 1.1;
+  }
+  .hero__title:lang(km) {
+    font-family: var(--khmer-display);
+    font-size: var(--step-72);
+    line-height: 1.5;
+    color: var(--palace-gold);
+    margin-top: 1.5rem;
+  }
+  .hero__title:lang(zh) {
+    font-weight: 900;
+    letter-spacing: 0.04em;
+  }
+  .hero__standfirst {
+    margin: 1.25rem 0 0;
+    font-size: var(--step-21);
+    line-height: 1.5;
+    color: var(--on-plum-soft);
+    max-width: 36em;
+  }
+  .hero__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1.5rem;
+    margin-top: 1.75rem;
+    font-size: var(--step-16);
+    color: var(--on-plum-soft);
+  }
+  .hero__note {
+    margin: 1rem 0 0;
+    padding-left: 0.9rem;
+    border-left: 2px solid var(--palace-gold);
+    font-size: var(--step-16);
+    color: var(--on-plum-soft);
+    max-width: 38em;
+  }
+  .hero__figure {
+    margin: 0;
+    width: 100%;
+  }
+  @media (max-width: 699px) {
+    .hero__figure {
+      order: -1;
+      width: 12rem;
+    }
+  }
+  .hero__arch {
+    position: relative;
+    padding: 8px;
+  }
+  .hero__arch img {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 125' preserveAspectRatio='none'%3E%3Cpath d='M0 125 V46 C0 30 18 22 30 16 C40 11 46 6 50 0 C54 6 60 11 70 16 C82 22 100 30 100 46 V125 Z'/%3E%3C/svg%3E")
+      center / 100% 100% no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 125' preserveAspectRatio='none'%3E%3Cpath d='M0 125 V46 C0 30 18 22 30 16 C40 11 46 6 50 0 C54 6 60 11 70 16 C82 22 100 30 100 46 V125 Z'/%3E%3C/svg%3E")
+      center / 100% 100% no-repeat;
+  }
+  .hero__arch-line {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    fill: none;
+    stroke: var(--palace-gold);
+    stroke-width: 1.5;
+    vector-effect: non-scaling-stroke;
+  }
+  .hero__arch-line path {
+    vector-effect: non-scaling-stroke;
+  }
+  .hero__figure figcaption {
+    margin-top: 0.5rem;
+    line-height: 1.4;
+  }
+</style>

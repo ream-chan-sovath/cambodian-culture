@@ -1,0 +1,159 @@
+/* Long-form reading: the body of every story page.
+   A normal text column (not a grid) so photos can float beside paragraphs. */
+.prose {
+  width: min(var(--measure), 100% - 2 * var(--gutter));
+  margin-inline: auto;
+  padding-top: 3.5rem;
+}
+.prose::after {
+  content: '';
+  display: block;
+  clear: both;
+}
+
+/* Blocks that break out of the reading column. They sit below any floating photo. */
+.prose > .span-full {
+  width: 100vw;
+  margin-inline: calc(50% - 50vw);
+  clear: both;
+}
+.prose > .span-wide {
+  --wide: min(100vw - 2 * var(--gutter), 64rem);
+  width: var(--wide);
+  margin-inline: calc((100% - var(--wide)) / 2);
+  clear: both;
+}
+.prose > h2,
+.prose > h3 {
+  clear: both;
+}
+
+.prose > p,
+.prose > ul,
+.prose > ol,
+.prose > blockquote {
+  margin: 0 0 1.25em;
+}
+
+.prose > h2 {
+  margin: 2.5em 0 0.6em;
+  font-size: var(--step-36);
+}
+.prose > h3 {
+  margin: 2em 0 0.5em;
+  font-size: var(--step-24);
+}
+:lang(km) .prose > h2,
+:lang(km) .prose > h3 {
+  font-family: var(--reading);
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+/* The opening paragraph of each chapter starts a little larger. */
+.prose > [data-gate] + p,
+.prose > p:first-child {
+  font-size: var(--step-21);
+  line-height: 1.55;
+}
+:lang(km) .prose > [data-gate] + p,
+:lang(km) .prose > p:first-child {
+  line-height: 1.9;
+}
+
+.prose strong {
+  font-weight: 650;
+}
+
+.prose hr {
+  border: 0;
+  height: 44px;
+  margin: 3rem 0;
+  background: center / auto 20px no-repeat
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 44'%3E%3Cg fill='none' stroke='%238a6510' stroke-width='1.3' stroke-linecap='round'%3E%3Cpath d='M40 38 C31 32 31 21 38 13 C40 10.5 40.5 8 39.5 4.5 C47 10.5 50 21 45.5 29 C44 32 42 35 40 38 Z'/%3E%3Cpath d='M40 38 C30 38 20 35 15 28 C11.5 23 14 17 19 17.5 C23.5 18 24 23.5 20.5 24.5'/%3E%3Cpath d='M40 38 C50 38 60 35 65 28 C68.5 23 66 17 61 17.5 C56.5 18 56 23.5 59.5 24.5'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* Footnote references in the text. */
+.prose sup {
+  line-height: 0;
+}
+.prose sup a,
+.prose a[data-footnote-ref] {
+  font-family: var(--font-literata, serif);
+  font-size: 0.72em;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 0 0.12em;
+  color: var(--peacock);
+}
+.prose sup a:hover {
+  text-decoration: underline;
+}
+
+/* End matter: notes, references, credits. */
+.end-section,
+.prose .footnotes,
+.prose section[data-footnotes] {
+  clear: both;
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--rule-gold);
+}
+.end-section h2,
+.footnotes-title {
+  font-size: var(--step-24);
+  margin-bottom: 1rem;
+}
+:lang(km) .end-section h2,
+:lang(km) .footnotes-title {
+  font-family: var(--reading);
+  font-weight: 700;
+}
+
+.prose .footnotes ol,
+.prose section[data-footnotes] ol {
+  margin: 0;
+  padding-left: 1.4rem;
+  display: grid;
+  gap: 0.5rem;
+  font-size: var(--step-16);
+  line-height: 1.55;
+}
+.prose .footnotes li,
+.prose section[data-footnotes] li {
+  padding-left: 0.3rem;
+  scroll-margin-top: 6rem;
+}
+.prose .footnotes li p,
+.prose section[data-footnotes] li p {
+  margin: 0;
+}
+.prose .footnotes li:target,
+.prose section[data-footnotes] li:target {
+  background: color-mix(in oklab, var(--palace-gold) 18%, transparent);
+  outline: 6px solid color-mix(in oklab, var(--palace-gold) 18%, transparent);
+}
+.prose [data-footnote-backref] {
+  text-decoration: none;
+  margin-left: 0.25em;
+}
+
+/* Footnote preview bubble, added by script. */
+.note-preview {
+  position: absolute;
+  z-index: 30;
+  width: min(24rem, calc(100vw - 2 * var(--gutter)));
+  padding: 0.9rem 1.1rem;
+  color: var(--on-plum);
+  font-size: var(--step-16);
+  line-height: 1.5;
+}
+.note-preview p {
+  margin: 0;
+}
+.note-preview a {
+  color: var(--gold-pale);
+}
+.note-preview [data-footnote-backref] {
+  display: none;
+}

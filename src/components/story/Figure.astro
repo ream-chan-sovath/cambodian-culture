@@ -1,0 +1,124 @@
+---
+import { Image, getImage } from 'astro:assets';
+import { getMedia } from '../../lib/media';
+import { useTranslations } from '../../i18n/utils';
+import Credit from './Credit.astro';
+
+// A photo that sits beside the text it belongs to, like a magazine page.
+// Photos alternate right and left down the page unless `align` says otherwise.
+// Put <Figure> just before the paragraphs it should sit beside.
+interface Props {
+  /** File name in this page's images folder. */
+  name: string;
+  alt: string;
+  /** Which side of the text the photo sits on. Alternates automatically when left out. */
+  align?: 'left' | 'right';
+  /** CSS object-position, for crops. */
+  position?: string;
+  /** Crop to an aspect ratio, e.g. "4 / 5". Leave empty to show the whole image. */
+  aspect?: string;
+}
+
+const { name, alt, align, position, aspect } = Astro.props;
+const locale = Astro.locals.locale ?? 'en';
+const slug = Astro.locals.pageSlug;
+if (!slug) throw new Error('<Figure> can only be used inside a page.');
+const t = useTranslations(locale);
+const { image, credit } = getMedia(slug, name);
+const large = await getImage({ src: image, width: Math.min(image.width, 2000) });
+
+const index = Astro.locals.figureCount ?? 0;
+Astro.locals.figureCount = index + 1;
+const side = align ?? (index % 2 === 0 ? 'right' : 'left');
+const portrait = image.height > image.width * 1.1;
+const hasCaption = Astro.slots.has('default');
+---
+
+<figure class:list={['figure', `figure--${side}`, { 'figure--portrait': portrait }]}>
+  <button
+    type="button"
+    class="figure__zoom"
+    data-lightbox
+    data-src={large.src}
+    data-alt={alt}
+    aria-label={`${t('viewLarger')}: ${alt}`}
+  >
+    <Image
+      src={image}
+      alt={alt}
+      widths={[360, 540, 720, 960].filter((w) => w <= image.width)}
+      sizes="(min-width: 600px) 22rem, 100vw"
+      style={{ objectPosition: position, aspectRatio: aspect }}
+      class:list={{ 'is-cropped': !!aspect }}
+    />
+  </button>
+  <figcaption>
+    {hasCaption && <span class="figure__caption"><slot /></span>}
+    <Credit credit={credit} locale={locale} />
+  </figcaption>
+</figure>
+
+<style>
+  .figure {
+    clear: both;
+    margin: 0.35rem 0 1.5rem;
+  }
+  .figure__zoom {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: zoom-in;
+  }
+  .figure img {
+    width: 100%;
+    background: var(--cotton-deep);
+  }
+  .figure img.is-cropped {
+    object-fit: cover;
+  }
+  .figure--portrait {
+    max-width: 65%;
+  }
+  figcaption {
+    display: grid;
+    gap: 0.2rem;
+    margin-top: 0.5rem;
+    font-size: var(--step-14);
+    line-height: 1.45;
+    color: var(--ink-soft);
+  }
+  .figure__caption :global(p) {
+    margin: 0;
+  }
+
+  /* Beside the text from small tablets up. */
+  @media (min-width: 600px) {
+    .figure {
+      width: 48%;
+    }
+    .figure--portrait {
+      width: 36%;
+      max-width: none;
+    }
+    .figure--right {
+      float: right;
+      margin: 0.4rem 0 1.25rem 1.75rem;
+    }
+    .figure--left {
+      float: left;
+      margin: 0.4rem 1.75rem 1.25rem 0;
+    }
+  }
+
+  /* On wide screens the photo hangs slightly into the margin, so the text keeps more room. */
+  @media (min-width: 1100px) {
+    .figure--right {
+      margin-right: -4rem;
+    }
+    .figure--left {
+      margin-left: -4rem;
+    }
+  }
+</style>

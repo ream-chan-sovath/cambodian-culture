@@ -1,0 +1,129 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { getImage } from 'astro:assets';
+import { render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/prose.css';
+import { getLocalizedPages, type LocalizedPage } from '../../lib/pages';
+import { getMedia, getPageCredits } from '../../lib/media';
+import { htmlLang } from '../../i18n/utils';
+import StoryHero from '../../components/story/StoryHero.astro';
+import ChapterGate from '../../components/story/ChapterGate.astro';
+import Figure from '../../components/story/Figure.astro';
+import PhotoSequence from '../../components/story/PhotoSequence.astro';
+import PullQuote from '../../components/story/PullQuote.astro';
+import Term from '../../components/story/Term.astro';
+import Timeline from '../../components/story/Timeline.astro';
+import TimelineItem from '../../components/story/TimelineItem.astro';
+import Video from '../../components/story/Video.astro';
+import Lightbox from '../../components/story/Lightbox.astro';
+import ReadingThread from '../../components/story/ReadingThread.astro';
+import KbachExplorer from '../../components/interactive/KbachExplorer.astro';
+import References from '../../components/end/References.astro';
+import ImageCredits from '../../components/end/ImageCredits.astro';
+import NextRead from '../../components/end/NextRead.astro';
+
+export const getStaticPaths = (async () => {
+  const pages = await getLocalizedPages();
+  return pages.map((page) => ({
+    params: { locale: page.locale, slug: page.slug },
+    props: { page, siblings: pages.filter((p) => p.locale === page.locale) },
+  }));
+}) satisfies GetStaticPaths;
+
+interface Props {
+  page: LocalizedPage;
+  siblings: LocalizedPage[];
+}
+
+const { page, siblings } = Astro.props;
+const { locale, entry, base, slug } = page;
+
+// Components inside MDX read these to find their images and language.
+Astro.locals.locale = locale;
+Astro.locals.pageSlug = slug;
+Astro.locals.figureCount = 0;
+
+const { Content } = await render(entry);
+const entryLang = htmlLang[entry.id.split('/').at(-1) as keyof typeof htmlLang];
+const sources = entry.data.sources ?? base.data.sources ?? [];
+const heroName = entry.data.hero ?? base.data.hero;
+const ogImage = heroName ? (await getImage({ src: getMedia(slug, heroName).image, width: 1200, format: 'jpg' })).src : undefined;
+
+const components = {
+  ChapterGate,
+  Figure,
+  PhotoSequence,
+  PullQuote,
+  Term,
+  Timeline,
+  TimelineItem,
+  Video,
+  KbachExplorer,
+};
+---
+
+<BaseLayout
+  locale={locale}
+  title={entry.data.title}
+  description={entry.data.standfirst}
+  path={`${slug}/`}
+  available={page.available}
+  ogImage={ogImage}
+  headerTone="plum"
+>
+  <article lang={page.isFallback ? entryLang : undefined} data-article>
+    <StoryHero page={page} />
+    <div class="prose">
+      <Content components={components} />
+      <References sources={sources} locale={locale} />
+      <ImageCredits credits={getPageCredits(slug)} locale={locale} />
+    </div>
+  </article>
+  <NextRead current={page} pages={siblings} locale={locale} />
+  <ReadingThread />
+  <Lightbox />
+</BaseLayout>
+
+<script>
+  // Preview a footnote beside its number on hover or keyboard focus. The link still jumps to the note.
+  const refs = document.querySelectorAll<HTMLAnchorElement>('a[data-footnote-ref]');
+  let bubble: HTMLElement | null = null;
+  let hideTimer = 0;
+
+  function hide() {
+    bubble?.remove();
+    bubble = null;
+  }
+
+  function show(ref: HTMLAnchorElement) {
+    window.clearTimeout(hideTimer);
+    hide();
+    const id = decodeURIComponent(ref.hash.slice(1));
+    const note = document.getElementById(id);
+    if (!note) return;
+    bubble = document.createElement('div');
+    bubble.className = 'note-preview glass glass--panel glass--strong';
+    bubble.setAttribute('role', 'tooltip');
+    bubble.innerHTML = note.innerHTML;
+    document.body.append(bubble);
+    const rect = ref.getBoundingClientRect();
+    const width = bubble.offsetWidth;
+    const left = Math.min(Math.max(12, rect.left + window.scrollX - width / 2), window.scrollX + document.documentElement.clientWidth - width - 12);
+    bubble.style.left = `${left}px`;
+    bubble.style.top = `${rect.bottom + window.scrollY + 16}px`;
+    bubble.addEventListener('mouseenter', () => window.clearTimeout(hideTimer));
+    bubble.addEventListener('mouseleave', () => (hideTimer = window.setTimeout(hide, 150)));
+  }
+
+  refs.forEach((ref) => {
+    if (!window.matchMedia('(hover: hover)').matches) return;
+    ref.addEventListener('mouseenter', () => show(ref));
+    ref.addEventListener('mouseleave', () => (hideTimer = window.setTimeout(hide, 200)));
+    ref.addEventListener('focus', () => show(ref));
+    ref.addEventListener('blur', () => (hideTimer = window.setTimeout(hide, 200)));
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') hide();
+  });
+</script>

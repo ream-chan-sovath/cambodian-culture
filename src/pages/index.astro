@@ -1,0 +1,104 @@
+---
+import '../styles/global.css';
+import { Font } from 'astro:assets';
+import { enabledLocales } from '../site.config';
+import { languageNames, ui } from '../i18n/ui';
+import { htmlLang, localeUrl } from '../i18n/utils';
+import KbachBorder from '../components/story/KbachBorder.astro';
+import Analytics from '../components/site/Analytics.astro';
+
+const targets = Object.fromEntries(enabledLocales.map((l) => [l, localeUrl(l)]));
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{ui.en.siteName} | {ui.km.siteName} | {ui.zh.siteName}</title>
+    <meta name="description" content={ui.en.tagline} />
+    <link rel="icon" type="image/svg+xml" href={`${import.meta.env.BASE_URL.replace(/\/$/, '')}/favicon.svg`} />
+    <meta name="theme-color" content="#3b1631" />
+    {enabledLocales.map((l) => <link rel="alternate" hreflang={htmlLang[l]} href={new URL(localeUrl(l), Astro.site)} />)}
+    <Font cssVariable="--font-bodoni" preload />
+    <Font cssVariable="--font-moul" />
+    <Font cssVariable="--font-noto-khmer" />
+    <script is:inline define:vars={{ targets }}>
+      // Send readers to their own language. Anyone without JavaScript picks from the links.
+      var prefs = navigator.languages || [navigator.language || 'en'];
+      for (var i = 0; i < prefs.length; i++) {
+        var code = String(prefs[i]).toLowerCase().slice(0, 2);
+        if (targets[code]) {
+          location.replace(targets[code]);
+          break;
+        }
+      }
+    </script>
+    <Analytics />
+  </head>
+  <body class="choose on-plum">
+    <main>
+      <p class="choose__mark khmer-display" lang="km">{ui.km.siteName}</p>
+      <KbachBorder units={12} />
+      <ul>
+        {
+          enabledLocales.map((l) => (
+            <li>
+              <a href={localeUrl(l)} lang={htmlLang[l]} hreflang={htmlLang[l]}>
+                <span class="choose__lang">{languageNames[l]}</span>
+                <span class="choose__name">{ui[l].siteName}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </main>
+  </body>
+</html>
+
+<style>
+  .choose {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    background: var(--weave), var(--silk-plum);
+    background-blend-mode: overlay;
+    color: var(--on-plum);
+    padding: var(--gutter);
+  }
+  main {
+    width: min(100%, 40rem);
+    text-align: center;
+  }
+  .choose__mark {
+    margin: 0 0 1rem;
+    font-size: clamp(2.2rem, 1rem + 6vw, 4.5rem);
+    color: var(--palace-gold);
+  }
+  ul {
+    list-style: none;
+    margin: 2rem 0 0;
+    padding: 0;
+    display: grid;
+    gap: 0.75rem;
+  }
+  a {
+    display: grid;
+    gap: 0.1rem;
+    padding: 1rem;
+    border: 1px solid color-mix(in oklab, var(--palace-gold) 60%, transparent);
+    border-radius: 999px;
+    color: var(--on-plum);
+    text-decoration: none;
+  }
+  a:hover {
+    background: var(--plum-soft);
+  }
+  .choose__lang {
+    font-size: var(--step-24);
+  }
+  .choose__name {
+    font-size: var(--step-16);
+    color: var(--on-plum-soft);
+  }
+</style>

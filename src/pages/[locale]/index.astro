@@ -1,0 +1,271 @@
+---
+import { Image } from 'astro:assets';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import KbachBorder from '../../components/story/KbachBorder.astro';
+import PageRow from '../../components/site/PageRow.astro';
+import { enabledLocales, topics, type Locale } from '../../site.config';
+import { getPagesFor } from '../../lib/pages';
+import { getMedia } from '../../lib/media';
+import { localeUrl, localNumber, useTranslations } from '../../i18n/utils';
+import { ui } from '../../i18n/ui';
+
+export function getStaticPaths() {
+  return enabledLocales.map((locale) => ({ params: { locale } }));
+}
+
+const locale = Astro.params.locale as Locale;
+const t = useTranslations(locale);
+const pages = await getPagesFor(locale);
+const featured = pages[0];
+const featuredMedia = featured?.base.data.hero ? getMedia(featured.slug, featured.entry.data.hero ?? featured.base.data.hero) : undefined;
+const countFor = (id: string) => pages.filter((p) => p.base.data.topic === id).length;
+---
+
+<BaseLayout locale={locale} headerTone="plum" current="home">
+  <section class="intro on-plum">
+    <div class="intro__inner">
+      <h1 class="intro__title">
+        <span class="intro__mark khmer-display" lang="km">{ui.km.siteName}</span>
+        {locale !== 'km' && <span class="intro__name">{t('siteName')}</span>}
+      </h1>
+      <p class="intro__tagline">{t('tagline')}</p>
+    </div>
+    <KbachBorder />
+    {
+      featured && (
+        <article class="featured">
+          {featuredMedia && (
+            <div class="featured__arch">
+              <Image
+                src={featuredMedia.image}
+                alt=""
+                widths={[480, 800, 1200].filter((w) => w <= featuredMedia.image.width)}
+                sizes="(min-width: 960px) 17rem, 28vw"
+                loading="eager"
+                style={{ objectPosition: featured.entry.data.heroPosition ?? featured.base.data.heroPosition }}
+              />
+            </div>
+          )}
+          <div class="featured__text">
+            {featured.base.data.nativeTitle && locale !== 'km' && (
+              <p class="featured__native khmer-display" lang="km">
+                {featured.base.data.nativeTitle}
+              </p>
+            )}
+            <h2 class="featured__title">{featured.entry.data.title}</h2>
+            <p class="featured__standfirst">{featured.entry.data.standfirst}</p>
+            <a class="featured__link glass" href={localeUrl(locale, featured.slug)}>
+              {t('readPage')}
+            </a>
+          </div>
+        </article>
+      )
+    }
+  </section>
+
+  <section id="topics" class="topics" aria-labelledby="topics-title">
+    <h2 id="topics-title" class="section-title">{t('topics')}</h2>
+    <ul class="topics__list">
+      {
+        topics.map((topic) => {
+          const count = countFor(topic.id);
+          return (
+            <li class:list={['topic', { 'topic--empty': count === 0 }]}>
+              <span class="topic__mark khmer-display" lang="km" aria-hidden="true">
+                {topic.mark}
+              </span>
+              <div class="topic__text">
+                <h3 class="topic__name">
+                  {count > 0 ? <a href={localeUrl(locale, `topics/${topic.id}`)}>{topic.name[locale]}</a> : topic.name[locale]}
+                </h3>
+                <p class="topic__blurb">{topic.blurb[locale]}</p>
+              </div>
+              <p class="topic__count">
+                {count === 0 ? t('comingLater') : count === 1 ? t('pageCountOne') : t('pageCount', { n: localNumber(count, locale) })}
+              </p>
+            </li>
+          );
+        })
+      }
+    </ul>
+  </section>
+
+  {
+    pages.length > 1 && (
+      <section class="latest" aria-labelledby="latest-title">
+        <h2 id="latest-title" class="section-title">
+          {t('latest')}
+        </h2>
+        {pages.slice(0, 8).map((page) => (
+          <PageRow page={page} locale={locale} />
+        ))}
+      </section>
+    )
+  }
+</BaseLayout>
+
+<style>
+  .intro {
+    background: var(--weave), var(--silk-plum);
+    background-blend-mode: overlay;
+    color: var(--on-plum);
+    padding-bottom: clamp(3rem, 8vh, 5rem);
+  }
+  .intro__inner {
+    max-width: 76rem;
+    margin: 0 auto;
+    padding: clamp(2.5rem, 8vh, 5rem) var(--gutter) 2.5rem;
+  }
+  .intro__title {
+    display: grid;
+    gap: 0.75rem;
+  }
+  .intro__mark {
+    font-size: clamp(1.9rem, 0.5rem + 5vw, 4.75rem);
+    line-height: 1.45;
+    color: var(--palace-gold);
+  }
+  .intro__name {
+    font-family: var(--display);
+    font-size: var(--step-36);
+    font-weight: 500;
+    line-height: 1.2;
+  }
+  .intro__tagline {
+    margin: 1rem 0 0;
+    max-width: 44ch;
+    font-size: var(--step-21);
+    color: var(--on-plum-soft);
+  }
+
+  /* News-style lead: picture on the left, words beside it, at every screen size. */
+  .featured {
+    display: grid;
+    grid-template-columns: clamp(6.5rem, 28vw, 17rem) minmax(0, 1fr);
+    gap: 1rem clamp(1.25rem, 4vw, 3rem);
+    align-items: start;
+    max-width: 76rem;
+    margin: 0 auto;
+    padding: 3rem var(--gutter) 0;
+  }
+  .featured__arch {
+    border: 1px solid var(--palace-gold);
+    border-radius: 999px 999px 0 0;
+    padding: clamp(4px, 0.8vw, 10px);
+  }
+  .featured__arch img {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    border-radius: 999px 999px 0 0;
+  }
+  .featured__native {
+    margin: 0;
+    font-size: clamp(1.5rem, 0.9rem + 2.6vw, 3rem);
+    line-height: 1.5;
+    color: var(--gold-pale);
+  }
+  .featured__title {
+    margin-top: 0.25rem;
+    font-size: clamp(1.5rem, 0.9rem + 2.6vw, 3rem);
+    color: var(--on-plum);
+  }
+  .featured__title:lang(km),
+  :global(:lang(km)) .featured__title {
+    font-family: var(--khmer-display);
+    font-size: clamp(1.4rem, 0.8rem + 2.4vw, 2.25rem);
+    line-height: 1.6;
+    color: var(--palace-gold);
+  }
+  .featured__standfirst {
+    margin: 0.75rem 0 1.25rem;
+    max-width: 46ch;
+    font-size: clamp(1rem, 0.85rem + 0.6vw, 1.3125rem);
+    color: var(--on-plum-soft);
+  }
+  .featured__link {
+    display: inline-block;
+    margin-top: 0.5rem;
+    padding: 0.6rem 1.5rem;
+    color: var(--on-plum);
+  }
+
+  .section-title {
+    font-size: var(--step-48);
+    margin-bottom: 1.5rem;
+  }
+  .section-title:lang(km),
+  :global(:lang(km)) .section-title {
+    font-family: var(--khmer-display);
+    font-size: var(--step-36);
+    line-height: 1.6;
+  }
+  .topics,
+  .latest {
+    max-width: 76rem;
+    margin: 0 auto;
+    padding: 4.5rem var(--gutter) 1rem;
+  }
+  .latest {
+    padding-bottom: 5rem;
+  }
+  .topics__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .topic {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.25rem 2rem;
+    align-items: center;
+    padding: 1.5rem 0;
+    border-top: 1px solid var(--rule-gold);
+  }
+  .topic:last-child {
+    border-bottom: 1px solid var(--rule-gold);
+  }
+  @media (min-width: 760px) {
+    .topic {
+      grid-template-columns: 13rem 1fr auto;
+    }
+  }
+  .topic__mark {
+    grid-column: 1 / -1;
+    font-size: var(--step-48);
+    line-height: 1.5;
+    color: var(--gold-deep);
+  }
+  @media (min-width: 760px) {
+    .topic__mark {
+      grid-column: auto;
+    }
+  }
+  .topic--empty .topic__mark {
+    color: color-mix(in oklab, var(--gold-deep) 55%, var(--cotton));
+  }
+  .topic__name {
+    font-size: var(--step-24);
+  }
+  .topic__name:lang(km),
+  :global(:lang(km)) .topic__name {
+    font-family: var(--reading);
+    font-weight: 700;
+    line-height: 1.7;
+  }
+  .topic__name a {
+    color: var(--ink);
+  }
+  .topic__blurb {
+    margin: 0.3rem 0 0;
+    font-size: var(--step-16);
+    color: var(--ink-soft);
+    max-width: 52ch;
+  }
+  .topic__count {
+    margin: 0;
+    font-size: var(--step-14);
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+</style>

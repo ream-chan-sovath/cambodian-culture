@@ -1,0 +1,100 @@
+---
+import { siteConfig, topics, type Locale } from '../../site.config';
+import { localeUrl, localNumber, useTranslations } from '../../i18n/utils';
+import KbachBorder from '../story/KbachBorder.astro';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+const year = new Date().getFullYear();
+const years = year > siteConfig.since ? `${siteConfig.since}–${year}` : `${year}`;
+---
+
+<footer class="site-footer on-plum">
+  <KbachBorder class="site-footer__border" units={30} />
+  <div class="site-footer__inner">
+    <div>
+      <p class="site-footer__name">{t('siteName')}</p>
+      <p class="site-footer__tagline">{t('tagline')}</p>
+    </div>
+    <nav aria-label={t('topics')}>
+      <ul>
+        {
+          topics.map((topic) => (
+            <li>
+              <a href={localeUrl(locale, `topics/${topic.id}`)}>{topic.name[locale]}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+    <nav aria-label={t('about')}>
+      <ul>
+        <li><a href={localeUrl(locale)}>{t('home')}</a></li>
+        <li><a href={localeUrl(locale, 'about')}>{t('about')}</a></li>
+        <li><a href={localeUrl(locale, 'credits')}>{t('credits')}</a></li>
+      </ul>
+    </nav>
+    <p class="site-footer__fine">© {localNumber(years, locale)}. {t('footerText')}</p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    background: var(--weave), var(--plum-deep);
+    background-blend-mode: overlay;
+    color: var(--on-plum);
+    margin-top: 0;
+  }
+  .site-footer :global(.site-footer__border) {
+    color: color-mix(in oklab, var(--palace-gold) 70%, var(--plum-deep));
+  }
+  .site-footer__inner {
+    display: grid;
+    gap: 2rem;
+    padding: 3rem var(--gutter) 3.5rem;
+    max-width: 72rem;
+    margin: 0 auto;
+    font-size: var(--step-16);
+  }
+  @media (min-width: 800px) {
+    .site-footer__inner {
+      grid-template-columns: 2fr 1fr 1fr;
+    }
+  }
+  .site-footer__name {
+    font-family: var(--display);
+    font-size: var(--step-24);
+    margin: 0 0 0.5rem;
+    color: var(--gold-pale);
+  }
+  .site-footer__name:lang(km) {
+    font-family: var(--khmer-display);
+    font-size: var(--step-21);
+  }
+  .site-footer__tagline {
+    margin: 0;
+    max-width: 40ch;
+    color: var(--on-plum-soft);
+  }
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.35rem;
+  }
+  a {
+    color: var(--on-plum);
+  }
+  .site-footer__fine {
+    grid-column: 1 / -1;
+    margin: 0;
+    font-size: var(--step-14);
+    color: var(--on-plum-soft);
+    max-width: 70ch;
+  }
+</style>

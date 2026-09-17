@@ -1,0 +1,88 @@
+/* Silk glass: a plain frosted, silk-tinted surface for buttons and panels.
+   Blur + tint + a thin gold-toned border, on rounded corners. No SVG, no masks,
+   no illustration — buttons default to a full pill (stadium) shape, which also
+   makes an equal-sided icon button a perfect circle for free.
+
+   Usage: add `glass` to a button, link or panel, plus optional modifiers:
+     glass--teal    teal silk, for controls on the peacock band
+     glass--light   cotton silk with a deep-gold edge, for light backgrounds
+     glass--strong  denser plum, for panels that sit over text
+     glass--panel   a rectangular panel (dropdown, popup): a smaller corner radius
+   Tune per element with --k-radius, --k-tint, --k-tint-hover and --k-edge. */
+
+:root {
+  --k-sheen: linear-gradient(180deg, rgb(255 255 255 / 0.14) 0, rgb(255 255 255 / 0.03) 45%, rgb(255 255 255 / 0) 75%);
+  --k-blur: 12px;
+}
+
+:where(.glass) {
+  --k-radius: 999px;
+  --k-tint: rgb(59 22 49 / 0.55);
+  --k-tint-hover: rgb(90 42 76 / 0.66);
+  --k-solid: #3b1631;
+  --k-edge: 233 207 138;
+  --k-edge-alpha: 0.55;
+  --k-shadow: 0 10px 22px -14px rgb(40 14 33 / 0.7);
+  border: 1px solid rgb(var(--k-edge) / var(--k-edge-alpha));
+  border-radius: var(--k-radius);
+  background: var(--k-sheen), var(--k-tint);
+  -webkit-backdrop-filter: blur(var(--k-blur)) saturate(140%);
+  backdrop-filter: blur(var(--k-blur)) saturate(140%);
+  color: var(--on-plum);
+  box-shadow: var(--k-shadow);
+}
+
+/* Interactive glass. */
+:is(a, button, summary).glass {
+  cursor: pointer;
+  text-decoration: none;
+}
+:is(a, button, summary).glass:hover {
+  --k-tint: var(--k-tint-hover);
+  --k-edge-alpha: 0.9;
+}
+:is(a, button, summary).glass:active {
+  translate: 0 1px;
+}
+:is(a, button, summary).glass:focus-visible {
+  outline: 2px solid rgb(var(--k-edge));
+  outline-offset: 3px;
+}
+
+/* Variants. */
+:where(.glass--teal) {
+  --k-tint: rgb(10 60 64 / 0.6);
+  --k-tint-hover: rgb(20 96 102 / 0.72);
+  --k-solid: #0a3c40;
+}
+:where(.glass--light) {
+  --k-tint: rgb(243 236 224 / 0.78);
+  --k-tint-hover: rgb(243 236 224 / 0.94);
+  --k-solid: #f3ece0;
+  --k-edge: 138 101 16;
+  --k-edge-alpha: 0.4;
+  color: var(--ink);
+  box-shadow: 0 10px 22px -14px rgb(40 14 33 / 0.3);
+}
+:where(.glass--strong) {
+  --k-tint: rgb(59 22 49 / 0.82);
+  --k-tint-hover: rgb(59 22 49 / 0.9);
+}
+:where(.glass--panel) {
+  --k-radius: 1rem;
+  box-shadow: 0 16px 34px -16px rgb(40 14 33 / 0.65);
+}
+
+/* Readers who ask for less transparency, and browsers without blur, get solid silk. */
+@media (prefers-reduced-transparency: reduce) {
+  .glass {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: var(--k-sheen), var(--k-solid);
+  }
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass {
+    background: var(--k-sheen), var(--k-solid);
+  }
+}

@@ -1,0 +1,164 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { enabledLocales, type Locale } from '../../site.config';
+import { localeUrl, useTranslations } from '../../i18n/utils';
+
+export function getStaticPaths() {
+  return enabledLocales.map((locale) => ({ params: { locale } }));
+}
+
+const locale = Astro.params.locale as Locale;
+const t = useTranslations(locale);
+
+// Khmer and Chinese are drafts: have a native speaker review them.
+const sections = {
+  en: [
+    {
+      title: 'What this is',
+      body: [
+        'The Cambodian Culture Archive publishes long, illustrated pages about Cambodian arts, history, food, festivals and language. Each page is written to be read start to finish, and each one can be checked.',
+      ],
+    },
+    {
+      title: 'How pages are sourced',
+      body: [
+        'Every factual claim carries a numbered note, and every note points to a source in the reference list at the end of the page. We read sources in both Khmer and English, and prefer Cambodian institutions, scholars and publications, UNESCO and museum records over travel blogs.',
+        'Where sources disagree, or a popular explanation turns out to be recent, the page says so.',
+      ],
+    },
+    {
+      title: 'Images',
+      body: [
+        'Most images come from Wikimedia Commons and are public domain or shared under a licence that allows reuse with credit (CC0, CC BY or CC BY-SA). A few photographs, such as the hand-gesture photos from the Cambodian publisher Yosothor, belong to their publishers and are shown with credit and a link to the original. Every image shows its creator and licence, and the full list is on the image credits page.',
+      ],
+    },
+    {
+      title: 'Videos',
+      body: [
+        'Videos are hosted on YouTube and credited to the channel that published them. A video only loads from YouTube when you press play.',
+      ],
+    },
+    {
+      title: 'Languages',
+      body: [
+        'Pages are written in English first. Khmer and Chinese versions are drafted with AI help and marked “Draft translation” until a native speaker has checked them. If a page isn’t available in your language yet, you’ll see the English version with a note.',
+      ],
+    },
+    {
+      title: 'Visitor counts',
+      body: [
+        'The site counts page views with Cloudflare Web Analytics, which doesn’t use cookies or collect personal information. The numbers are only used to see which pages people read.',
+      ],
+    },
+  ],
+  km: [
+    {
+      title: 'អំពីបណ្ណសារនេះ',
+      body: [
+        'បណ្ណសារវប្បធម៌ខ្មែរ ចុះផ្សាយអត្ថបទវែងៗ ព្រមរូបភាព អំពីសិល្បៈ ប្រវត្តិសាស្ត្រ ម្ហូបអាហារ ពិធីបុណ្យ និងភាសាខ្មែរ។ អត្ថបទនីមួយៗសរសេរឡើងដើម្បីអានពីដើមដល់ចប់ ហើយអាចផ្ទៀងផ្ទាត់បាន។',
+      ],
+    },
+    {
+      title: 'របៀបប្រមូលប្រភព',
+      body: [
+        'រាល់ការអះអាងជាការពិតមានលេខកំណត់សម្គាល់ ហើយកំណត់សម្គាល់នីមួយៗចង្អុលទៅប្រភពក្នុងបញ្ជីឯកសារយោងនៅចុងអត្ថបទ។ យើងអានប្រភពទាំងភាសាខ្មែរ និងភាសាអង់គ្លេស ហើយផ្ដល់អាទិភាពដល់ស្ថាប័ន អ្នកប្រាជ្ញ និងការបោះពុម្ពផ្សាយរបស់កម្ពុជា ឯកសាររបស់យូណេស្កូ និងសារមន្ទីរ។',
+        'នៅពេលប្រភពមិនស្របគ្នា ឬការពន្យល់ដែលគេនិយមប្រែជាគំនិតថ្មីៗ អត្ថបទនឹងប្រាប់ឱ្យដឹង។',
+      ],
+    },
+    {
+      title: 'រូបភាព',
+      body: [
+        'រូបភាពភាគច្រើនមកពី Wikimedia Commons ហើយជាសាធារណសម្បត្តិ ឬមានអាជ្ញាប័ណ្ណអនុញ្ញាតឱ្យប្រើដោយបញ្ជាក់ប្រភព (CC0, CC BY ឬ CC BY-SA)។ រូបថតមួយចំនួន ដូចជារូបថតក្បាច់ដៃពីគ្រឹះស្ថានបោះពុម្ពយសោធរ ជាកម្មសិទ្ធិរបស់អ្នកបោះពុម្ព ហើយបង្ហាញជាមួយការបញ្ជាក់ប្រភព និងតំណទៅកាន់ប្រភពដើម។ រូបនីមួយៗបង្ហាញឈ្មោះអ្នកបង្កើត និងអាជ្ញាប័ណ្ណ។',
+      ],
+    },
+    {
+      title: 'វីដេអូ',
+      body: ['វីដេអូត្រូវបានផ្ទុកនៅលើ YouTube និងបញ្ជាក់ឈ្មោះឆានែលដែលបានចុះផ្សាយ។ វីដេអូផ្ទុកពី YouTube តែនៅពេលអ្នកចុចចាក់ប៉ុណ្ណោះ។'],
+    },
+    {
+      title: 'ភាសា',
+      body: [
+        'អត្ថបទសរសេរជាភាសាអង់គ្លេសមុន។ កំណែភាសាខ្មែរ និងភាសាចិន ព្រាងដោយមានជំនួយពី AI ហើយមានសញ្ញា «ការបកប្រែព្រាង» រហូតដល់អ្នកនិយាយភាសាកំណើតពិនិត្យរួច។',
+      ],
+    },
+    {
+      title: 'ការរាប់អ្នកចូលមើល',
+      body: [
+        'គេហទំព័រនេះរាប់ចំនួនអ្នកចូលមើលដោយប្រើ Cloudflare Web Analytics ដែលមិនប្រើខូគី និងមិនប្រមូលព័ត៌មានផ្ទាល់ខ្លួន។',
+      ],
+    },
+  ],
+  zh: [
+    {
+      title: '关于本站',
+      body: ['柬埔寨文化档案馆发布关于柬埔寨艺术、历史、饮食、节日和语言的长篇图文。每篇文章都适合从头读到尾，而且内容都可以查证。'],
+    },
+    {
+      title: '资料来源',
+      body: [
+        '每一处事实陈述都附有编号注释，每条注释都指向文末参考文献中的来源。我们同时阅读高棉文和英文资料，优先采用柬埔寨本国机构、学者和出版物，以及联合国教科文组织和博物馆的记录。',
+        '当资料之间有分歧，或某种流行说法其实出现得较晚时，文章会明确指出。',
+      ],
+    },
+    {
+      title: '图片',
+      body: ['大多数图片来自维基共享资源，属于公有领域或允许署名后再使用的许可协议（CC0、CC BY 或 CC BY-SA）。少数照片（例如来自柬埔寨出版机构 Yosothor 的手势照片）版权归出版方所有，本站注明出处并链接原文。每张图片都标明作者和许可协议。'],
+    },
+    {
+      title: '视频',
+      body: ['视频托管在 YouTube 上，并注明发布频道。只有点击播放后，才会从 YouTube 加载视频。'],
+    },
+    {
+      title: '语言',
+      body: ['文章先以英文撰写。高棉文和中文版本由 AI 协助起草，在母语人士审校之前会标注“翻译草稿”。'],
+    },
+    {
+      title: '访问统计',
+      body: ['本站使用 Cloudflare Web Analytics 统计页面浏览量，它不使用 Cookie，也不收集个人信息。'],
+    },
+  ],
+} satisfies Record<Locale, { title: string; body: string[] }[]>;
+---
+
+<BaseLayout locale={locale} title={t('about')} path="about/" current="about">
+  <div class="about layout-grid">
+    <h1>{t('about')}</h1>
+    {
+      sections[locale].map((section) => (
+        <section>
+          <h2>{section.title}</h2>
+          {section.body.map((p) => (
+            <p>{p}</p>
+          ))}
+        </section>
+      ))
+    }
+    <p><a href={localeUrl(locale, 'credits')}>{t('credits')}</a></p>
+  </div>
+</BaseLayout>
+
+<style>
+  .about {
+    padding: 3.5rem 0 5rem;
+  }
+  h1 {
+    font-size: var(--step-48);
+    margin-bottom: 1rem;
+  }
+  h2 {
+    font-size: var(--step-24);
+    margin: 2.25rem 0 0.5rem;
+  }
+  h1:lang(km),
+  :global(:lang(km)) h1 {
+    font-family: var(--khmer-display);
+    font-size: var(--step-36);
+    line-height: 1.6;
+  }
+  h2:lang(km),
+  :global(:lang(km)) h2 {
+    font-family: var(--reading);
+    font-weight: 700;
+    line-height: 1.7;
+  }
+</style>

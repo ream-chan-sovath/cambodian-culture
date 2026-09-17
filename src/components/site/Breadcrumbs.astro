@@ -1,0 +1,47 @@
+---
+import type { Locale } from '../../site.config';
+import { localeUrl, useTranslations } from '../../i18n/utils';
+
+// "Home › Topic" trail at the top of inner pages, so readers always know how to get back.
+interface Props {
+  locale: Locale;
+  items?: { label: string; href: string }[];
+}
+
+const { locale, items = [] } = Astro.props;
+const t = useTranslations(locale);
+const trail = [{ label: t('home'), href: localeUrl(locale) }, ...items];
+---
+
+<nav class="crumbs" aria-label={t('breadcrumb')}>
+  <ol>
+    {
+      trail.map((item) => (
+        <li>
+          <a href={item.href}>{item.label}</a>
+        </li>
+      ))
+    }
+  </ol>
+</nav>
+
+<style>
+  .crumbs ol {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25rem 0.6rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: var(--step-16);
+  }
+  .crumbs li + li::before {
+    content: '›' / '';
+    margin-right: 0.6rem;
+    color: var(--palace-gold);
+  }
+  .crumbs a {
+    color: var(--gold-pale);
+  }
+</style>

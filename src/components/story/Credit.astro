@@ -1,0 +1,31 @@
+---
+import type { Credit } from '../../lib/media';
+import type { Locale } from '../../site.config';
+import { useTranslations } from '../../i18n/utils';
+
+interface Props {
+  credit: Credit;
+  locale: Locale;
+}
+
+const { credit, locale } = Astro.props;
+const t = useTranslations(locale);
+---
+
+<span class="credit">
+  {t('photo')}: <a href={credit.source} rel="noopener">{credit.author}</a>,{' '}
+  {credit.licenseUrl ? <a href={credit.licenseUrl} rel="license noopener">{credit.license}</a> : credit.license}
+</span>
+
+<style>
+  .credit {
+    font-size: var(--step-14);
+    color: var(--ink-soft);
+  }
+  .credit a {
+    color: inherit;
+  }
+  :global(.on-plum) .credit {
+    color: var(--on-plum-soft);
+  }
+</style>
